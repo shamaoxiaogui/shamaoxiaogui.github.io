@@ -2,20 +2,20 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>搬家记录 - Adro的作死笔记</title>
+  <title>Cpp - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～">
+  <meta name="description" content="Cpp">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="搬家记录 - Adro的作死笔记">
-  <meta itemprop="description" content="折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～">
+  <meta itemprop="name" content="Cpp - Adro的作死笔记">
+  <meta itemprop="description" content="Cpp">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="搬家记录 - Adro的作死笔记" />
+  <meta name="twitter:title" content="Cpp - Adro的作死笔记" />
   
   <meta name="twitter:description" content="hehe...">
-  
+  <link rel="alternate" href="http://shamaoxiaogui.github.io/feed.xml" title="Adro的作死笔记" type="application/rss+xml"/>
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
   <link rel="apple-touch-icon-precomposed" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -59,75 +59,21 @@
 
   </header>
   <div id="container">
-    <div id="main" class="post" itemscope itemprop="blogPost">
-	<article itemprop="articleBody">
-    <header class="article-info clearfix">
-  <h1 itemprop="name">
-      <a href="http://shamaoxiaogui.github.io/post/FirstPost/" title="搬家记录" itemprop="url">搬家记录</a>
-  </h1>
-  <p class="article-author">By
-    
-      <a href="http://shamaoxiaogui.github.io" title="adro">adro</a>
-    
-  </p>
-  <p class="article-time">
-    <time datetime="2016-07-17 13:09:40 &#43;0800 CST" itemprop="datePublished">2016年07月17日</time>
-  </p>
-</header>
-
-	<div class="article-content">
-    
-    <p>折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～</p>
-
-	</div>
-  <footer class="article-footer clearfix">
-  
-
-<div class="article-tags">
-  <span></span>
-  
-  <a href="http://shamaoxiaogui.github.io/tags/%E6%9D%82%E8%B0%88">杂谈</a>
-  
-</div>
-
-
-
-
-
-  <div class="article-share" id="share">
-    <div data-url="http://shamaoxiaogui.github.io/post/FirstPost/" data-title="搬家记录" data-tsina="2110117813" class="share clearfix">
-    </div>
-  </div>
-</footer>
-
-	</article>
-  
-
-
-<section class="comment">
-<div id="disqus_thread"></div>
+    <div id="main">
+      
+      <h2 id="2016-07">2016-07</h2>
+      
+      <section class="post" itemscope itemprop="blogPost">
+    <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_4/" title="cpp primer 第四章笔记" itemprop="url">
+    <h1 itemprop="name">cpp primer 第四章笔记</h1>
+    <p itemprop="description">第四章主要是表达式相关的内容： 除了&amp;&amp; || ?: ,四种操作符外，其他操作符都没有定义运算顺序（重要） sizeof是一种运算符，它不</p>
+    <time datetime="2016-07-19 21:18:38 &#43;0800 CST" itemprop="datePublished">2016年07月19日</time>
+  </a>
 </section>
-<script>
 
-
-var disqus_config = function () {
-this.page.url = "http://shamaoxiaogui.github.io/post/FirstPost/";
-this.page.identifier = "http://shamaoxiaogui.github.io/post/FirstPost/";
-};
-(function() { 
-var d = document, s = d.createElement('script');
-
-s.src = '//adro.disqus.com/embed.js';
-
-s.setAttribute('data-timestamp', +new Date());
-(d.head || d.body).appendChild(s);
-})();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
-
-
-</div>
-
+      
+      
+    </div>
     <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
@@ -201,6 +147,10 @@ s.setAttribute('data-timestamp', +new Date());
 
 
   
+<div class="rsspart">
+  <a rel="nofollow" href="http://shamaoxiaogui.github.io/feed.xml" type="application/rss+xml" target="_blank">RSS 订阅</a>
+</div>
+
 
 </aside>
 </div>
@@ -295,38 +245,6 @@ $(document).ready(function(){
 
 <script type="text/javascript">
 $(document).ready(function(){
-  var ai = $('.article-content>iframe'),
-      ae = $('.article-content>embed'),
-      t  = $('#toc'),
-      h  = $('article h2')
-      ah = $('article h2'),
-      ta = $('#toc.toc-aside'),
-      o  = $('.openaside'),
-      c  = $('.closeaside');
-  if(ai.length>0){
-    ai.wrap('<div class="video-container" />');
-  };
-  if(ae.length>0){
-   ae.wrap('<div class="video-container" />');
-  };
-  if(ah.length==0){
-    t.css('display','none');
-  }else{
-    c.click(function(){
-      ta.css('display', 'block').addClass('fadeIn');
-    });
-    o.click(function(){
-      ta.css('display', 'none');
-    });
-    $(window).scroll(function(){
-      ta.css("top",Math.max(140,320-$(this).scrollTop()));
-    });
-  };
-});
-</script>
-
-<script type="text/javascript">
-$(document).ready(function(){
   var $this = $('.share'),
       url = $this.attr('data-url'),
       encodedUrl = encodeURIComponent(url),
@@ -353,27 +271,6 @@ $(document).ready(function(){
 });
 </script>
 
-
-<link rel="stylesheet" href="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){
-  $('.article-content').each(function(i){
-    $(this).find('img').each(function(){
-      if ($(this).parent().hasClass('fancybox')) return;
-      var alt = this.alt;
-      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
-      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
-    });
-    $(this).find('.fancybox').each(function(){
-      $(this).attr('rel', 'article' + i);
-    });
-  });
-  if($.fancybox){
-    $('.fancybox').fancybox();
-  }
-});
-</script>
 
 
 <script>
