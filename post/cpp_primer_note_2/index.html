@@ -1,0 +1,485 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cpp primer 第二章笔记 - Adro的作死笔记</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+  
+  <meta name="description" content="cpp primer 第二章笔记">
+  <meta name="author" content="adro">
+  <meta itemprop="name" content="cpp primer 第二章笔记 - Adro的作死笔记">
+  <meta itemprop="description" content="cpp primer 第二章笔记">
+  <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@shamaoxiaogui" />
+  <meta name="twitter:title" content="cpp primer 第二章笔记 - Adro的作死笔记" />
+  <meta name="twitter:description" content="cpp primer 第二章笔记" />
+  
+  <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
+  <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
+  <link rel="apple-touch-icon-precomposed" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
+  <link rel="stylesheet" href="http://shamaoxiaogui.github.io/highlight/styles/github.css">
+  <script src="http://shamaoxiaogui.github.io/highlight/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <link rel="stylesheet" href="http://shamaoxiaogui.github.io/font/hack/css/hack.min.css">
+  <link rel="stylesheet" href="http://shamaoxiaogui.github.io/css/style.css">
+</head>
+
+<body>
+  <header>
+    <div>
+  
+  <div id="imglogo">
+    <a href="http://shamaoxiaogui.github.io/"><img src="http://shamaoxiaogui.github.io/img/logo.png" alt="Adro的作死笔记" title="Adro的作死笔记"/></a>
+  </div>
+  
+  <div id="textlogo">
+    <h1 class="site-name"><a href="http://shamaoxiaogui.github.io/" title="Adro的作死笔记">Adro的作死笔记</a></h1>
+    <h2 class="blog-motto">找个工作我容易么我</h2>
+  </div>
+  <div class="navbar"><a class="navbutton navmobile" href="#" title="menu"></a></div>
+  <nav class="animated">
+    <ul>
+      
+      <li><a href="/">首页</a></li>
+      
+      <li><a href="/about">关于</a></li>
+      
+      <li>
+        <form class="search" method="get" action="https://www.google.com/search">
+          <div>
+            <input type="text" id="search" name="q" placeholder="搜索">
+          </div>
+        </form>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+  </header>
+  <div id="container">
+    <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody">
+    <header class="article-info clearfix">
+  <h1 itemprop="name">
+      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_2/" title="cpp primer 第二章笔记" itemprop="url">cpp primer 第二章笔记</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://shamaoxiaogui.github.io" title="adro">adro</a>
+    
+  </p>
+  <p class="article-time">
+    <time datetime="2016-07-19 15:16:37 &#43;0800 CST" itemprop="datePublished">2016年07月19日</time>
+  </p>
+</header>
+
+	<div class="article-content">
+    
+    <p>第二章主要讲的是基本类型，需要注意的有：</p>
+
+<ol>
+<li>同一个表达式混用<strong><em>有符号</em></strong>和<strong><em>无符号</em></strong>数，会自动转换成<strong><em>无符号</em></strong></li>
+<li>字面值前缀指定字符编码，后缀指定变量大小或种类</li>
+
+<li><p>字符串字面值不可修改（因为放在一个只读段中）</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+int main(){
+    char *str=&quot;heheda!&quot;;
+    std::cout&lt;&lt;&quot;before m: &quot;&lt;&lt;str&lt;&lt;std::endl;
+    str[3]='a';
+    std::cout&lt;&lt;&quot;after m: &quot;&lt;&lt;str&lt;&lt;std::endl;
+    return 0;
+}
+</code></pre>
+
+<pre><code class="language-shell">$ ./cstr.out
+before m: heheda!
+[2]    37400 bus error  ./cstr.out
+</code></pre></li>
+
+<li><p><code>c++11</code>提供了一种新的*列表初始化*，但是效率么。。。</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+class tc{
+public:
+    tc(){std::cout&lt;&lt;&quot;ct a class! &quot;&lt;&lt;std::endl;}
+    tc(const tc &amp;t){std::cout&lt;&lt;&quot;copy a class!&quot;&lt;&lt;std::endl;}
+    tc&amp; operator=(tc &amp;t){std::cout&lt;&lt;&quot;= a class!&quot;&lt;&lt;std::endl; return *this;}
+};
+int main(){
+    tc t1;
+    std::cout&lt;&lt;&quot;===============&quot;&lt;&lt;std::endl;
+    tc t2(t1);
+    std::cout&lt;&lt;&quot;===============&quot;&lt;&lt;std::endl;
+    tc t3=t1;
+    std::cout&lt;&lt;&quot;===============&quot;&lt;&lt;std::endl;
+    tc t4{t1};
+    std::cout&lt;&lt;&quot;===============&quot;&lt;&lt;std::endl;
+    tc t5={t1};
+    std::cout&lt;&lt;&quot;===============&quot;&lt;&lt;std::endl;
+    std::vector&lt;tc&gt; tcv{t1,t2,t3};
+    return 0;
+}
+</code></pre>
+
+<pre><code class="language-shell">$ ./initlist.out
+ct a class!
+===============
+copy a class!
+===============
+copy a class!
+===============
+copy a class!
+===============
+copy a class!
+===============
+copy a class!
+copy a class!
+copy a class!
+copy a class!
+copy a class!
+copy a class!
+</code></pre>
+
+<p>所以在用容器时不要随便用初始化列表，详细见<a href="https://segmentfault.com/a/1190000002484690">这里</a></p></li>
+
+<li><p>const相关</p>
+
+<ul>
+<li>const变量只能初始化不能赋值（哈士奇都知道）</li>
+<li>不加extern的const变量只能在本文件访问（所以说加了呢）</li>
+<li>const左值引用可以绑定：const变量，非const变量，常量（字面量，这也是std::string的设计，只能将字符串传给const std::string &amp;，而不能传给std::string &amp;），无论如何，常量左值引用意味着不能通过这个引用去修改变量</li>
+<li>顶层const指指针本身的值是常量，底层const则是指针指向的值是常量，故而在函数传参或者复制指针时，顶层const忽略（反正就算你是常量我也只是复制你，后面无论怎么操作也不会修改你），底层const则不能忽略（因为有可能通过复制的指针修改数据）</li>
+</ul></li>
+
+<li><p>constexpr常量表达式，由编译器帮忙检查；using的别名声明功能（类似typedef—）</p></li>
+
+<li><p>单纯的auto的推断效果：忽略顶层const，然后把表达式的值算出来是啥类型auto就是啥类型。底层const保留。加const的auto推断出来才是顶层const的，auto &amp;推断出来才是引用</p></li>
+
+<li><p>decltype基本保留变量的所有属性，尤其是当变量为引用时推断出来的结果也是引用。当其表达式是解引用操作时，结果必为引用，而其跟双括号表达式（加了括号的变量），结果必为引用</p></li>
+
+<li><p>注意类内初始值的初始化顺序：类内初始值－》构造函数初始化列表－》构造函数体</p></li>
+</ol>
+
+	</div>
+  <footer class="article-footer clearfix">
+  
+
+<div class="article-tags">
+  <span></span>
+  
+  <a href="http://shamaoxiaogui.github.io/tags/development">Development</a>
+  
+  <a href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;">c&#43;&#43;</a>
+  
+</div>
+
+
+
+
+
+<div class="article-categories">
+  <span></span>
+  
+  <a class="article-category-link" href="http://shamaoxiaogui.github.io/categories/development">Development</a>
+  
+</div>
+
+
+
+  <div class="article-share" id="share">
+    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_2/" data-title="cpp primer 第二章笔记" data-tsina="2110117813" class="share clearfix">
+    </div>
+  </div>
+</footer>
+
+	</article>
+  
+
+
+<section class="comment">
+<div id="disqus_thread"></div>
+</section>
+<script>
+
+
+var disqus_config = function () {
+this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_2/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_2/";
+};
+(function() { 
+var d = document, s = d.createElement('script');
+
+s.src = '//adro.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+    <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+  
+
+<div class="categorieslist">
+  <p class="asidetitle">分类</p>
+  <ul>
+    
+    <li><a href="http://shamaoxiaogui.github.io/categories/development" title="development">development<sup>3</sup></a></li>
+    
+    <li><a href="http://shamaoxiaogui.github.io/categories/not-your-bussness" title="not-your-bussness">not-your-bussness<sup>1</sup></a></li>
+    
+  </ul>
+</div>
+
+
+
+  
+
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+      
+			<li><a href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;" title="c&#43;&#43;">c&#43;&#43;<sup>2</sup></a></li>
+      
+			<li><a href="http://shamaoxiaogui.github.io/tags/development" title="development">development<sup>3</sup></a></li>
+      
+			<li><a href="http://shamaoxiaogui.github.io/tags/%e6%9d%82%e8%b0%88" title="杂谈">杂谈<sup>2</sup></a></li>
+      
+		</ul>
+</div>
+
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle">归档</p>
+    <ul class="archive-list">
+      
+      
+      <li class="archive-list-item">
+        <a class="archive-list-link" href="http://shamaoxiaogui.github.io/post/#2016-07">2016年07月</a><span class="archive-list-count">5</span>
+      </li>
+      
+    </ul>
+
+  </div>
+
+
+  
+
+<div class="tagcloudlist">
+  <p class="asidetitle">标签云</p>
+  <div class="tagcloudlist clearfix">
+    
+    <a href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;" style="font-size: 12px;">c&#43;&#43;</a>
+    
+    <a href="http://shamaoxiaogui.github.io/tags/development" style="font-size: 12px;">development</a>
+    
+    <a href="http://shamaoxiaogui.github.io/tags/%e6%9d%82%e8%b0%88" style="font-size: 12px;">杂谈</a>
+    
+  </div>
+</div>
+
+
+
+  
+
+</aside>
+</div>
+
+  </div>
+  <footer><div id="footer" >
+  
+  <div class="line">
+    <span></span>
+    <div style='background:no-repeat url("http://shamaoxiaogui.github.io/img/author-2.jpg") left top;-webkit-background-size:6.875em 6.875em;-moz-background-size:6.875em 6.875em;background-size:6.875em 6.875em;' class="author" ></div>
+  </div>
+  
+  
+  <section class="info">
+    <p>Hello ,I'm Adro. <br/> This is my blog, believe it or not.</p>
+  </section>
+  
+  <div class="social-font clearfix">
+    
+    <a href="http://weibo.com/shamaoxiaogui" target="_blank" title="weibo"></a>
+    
+    
+    <a href="https://twitter.com/shamaoxiaogui" target="_blank" title="twitter"></a>
+    
+    
+    <a href="https://github.com/shamaoxiaogui" target="_blank" title="github"></a>
+    
+    
+    
+  </div>
+  <p class="copyright">Powered by <a href="http://gohugo.io" target="_blank" title="hugo">hugo</a> and Theme by <a href="https://github.com/coderzh/hugo-pacman-theme" target="_blank" title="hugo-pacman-theme">hugo-pacman-theme</a> © 2016
+    
+    <a href="http://shamaoxiaogui.github.io/" target="_blank" title="adro">adro</a>
+    
+  </p>
+</div>
+</footer>
+  <script src="http://shamaoxiaogui.github.io/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+done = false;
+$(document).ready(function(){
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize();
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  $('form.search').on('submit', function (event) {
+    if (false === done) {
+      event.preventDefault();
+      var orgVal = $(this).find('#search').val();
+      $(this).find('#search').val('site:http:\/\/shamaoxiaogui.github.io\/ ' + orgVal);
+      done = true;
+      $(this).submit();
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});
+</script>
+
+
+<link rel="stylesheet" href="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+});
+</script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-67880509-1', 'auto');
+  ga('send', 'pageview');
+  $('#messagesbsb').remove();
+</script>
+
+
+
+</body>
+</html>
