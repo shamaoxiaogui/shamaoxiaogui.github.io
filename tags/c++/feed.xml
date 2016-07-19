@@ -6,8 +6,76 @@
     <description>Recent content in C&#43;&#43; on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Tue, 19 Jul 2016 15:16:37 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 19 Jul 2016 17:05:39 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>cpp primer 第三章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_3/</link>
+      <pubDate>Tue, 19 Jul 2016 17:05:39 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_3/</guid>
+      <description>&lt;p&gt;第三章主要讲vector和string&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;string到底是不是以\0结尾的？c++11中规定&lt;strong&gt;&lt;em&gt;是&lt;/em&gt;&lt;/strong&gt;。但是不要依赖这个特性，乖乖的用size()；但是getline的时候换行符确实丢掉了&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;auto for循环，注意效率，有些时候auto for效率更高（迭代器最慢～～）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;chrono&amp;gt;
+#include &amp;lt;string&amp;gt;
+int main(){
+    int n;
+    char ch;
+    std::cout&amp;lt;&amp;lt;&amp;quot;input n: &amp;quot;;
+    std::cin&amp;gt;&amp;gt;n;
+    std::cout&amp;lt;&amp;lt;std::endl;
+    std::string str(n,&#39;c&#39;);
+    std::chrono::high_resolution_clock::time_point t1,t2;
+    t1=std::chrono::high_resolution_clock::now();
+    for(int i=0;i&amp;lt;n;++i){
+        ch=str[i];
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;for: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(auto t:str){
+        ch=t;
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;auto for: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(auto &amp;amp;t:str){
+        ch=t;
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;auto&amp;amp; for: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(const auto &amp;amp;t:str){
+        ch=t;
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;const auto&amp;amp; for: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./fortest.out
+input n: 1000000000
+
+for: 9104902 microseconds
+auto for: 5651329 microseconds
+auto&amp;amp; for: 5445633 microseconds
+const auto&amp;amp; for: 5508764 microseconds
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但是切记范围for不能改变循环序列的大小！！！&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;string的c_str()返回的char*字符串有可能不保证一直有效！！！&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     
     <item>
       <title>cpp primer 第二章笔记</title>
