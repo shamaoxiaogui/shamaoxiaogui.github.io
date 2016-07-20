@@ -2,18 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>cpp primer 第一章笔记 - Adro的作死笔记</title>
+  <title>cpp primer 第七章笔记 - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="C&#43;&#43; Primer的读书笔记，第一章">
+  <meta name="description" content="cpp primer 第七章笔记">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="cpp primer 第一章笔记 - Adro的作死笔记">
-  <meta itemprop="description" content="C&#43;&#43; Primer的读书笔记，第一章">
+  <meta itemprop="name" content="cpp primer 第七章笔记 - Adro的作死笔记">
+  <meta itemprop="description" content="cpp primer 第七章笔记">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="cpp primer 第一章笔记 - Adro的作死笔记" />
-  <meta name="twitter:description" content="C&#43;&#43; Primer的读书笔记，第一章" />
+  <meta name="twitter:title" content="cpp primer 第七章笔记 - Adro的作死笔记" />
+  <meta name="twitter:description" content="cpp primer 第七章笔记" />
   
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -62,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_1/" title="cpp primer 第一章笔记" itemprop="url">cpp primer 第一章笔记</a>
+      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_7/" title="cpp primer 第七章笔记" itemprop="url">cpp primer 第七章笔记</a>
   </h1>
   <p class="article-author">By
     
@@ -70,71 +70,97 @@
     
   </p>
   <p class="article-time">
-    <time datetime="2016-07-19 14:20:39 &#43;0800 CST" itemprop="datePublished">2016年07月19日</time>
+    <time datetime="2016-07-20 16:36:02 &#43;0800 CST" itemprop="datePublished">2016年07月20日</time>
   </p>
 </header>
 
 	<div class="article-content">
     
-    <p>第一章只是一个引入，要注意的有：</p>
+    <p>第七章，终于到正题了，类：</p>
 
 <ol>
-<li><p><code>std::cin</code>在读到EOF的情形</p>
+<li>只有在类中没有任何构造函数时，编译器才会生产合成默认构造函数；只有当类内部的内置类型被赋予类内初始值时，合成默认构造函数才有可能合适；如果类内包含其它的没有默认构造函数的类时，编译器不能为其生成合成默认构造函数；可以明确指定使用合成默认构造函数：<code>xxx()=default;</code></li>
+<li>继承的三种方式，参见<a href="http://blog.csdn.net/complety/article/details/7493194">文章</a></li>
+<li>友元也会被继承，但是友元类不具有传递性；友元声明仅仅是友元声明，一般需要在类定义外加一个普通函数声明（一般类定义是放在头文件的，所以一般也需要这个普通函数声明），虽然有的编译器不这么要求</li>
+<li>mutable关键字是说，即使类的实体是个const实体，其mutable成员也是可以改变的</li>
+<li>类内初始值可以用＝和花括号</li>
+<li>对于类中的const、引用或者未提供默认构造函数的类成员，必须用类内初始值或者构造函数的初始值列表来初始化，而不能直接在构造函数中“初始化”（原因很简单，构造函数中的“初始化”实际上是先对成员进行默认初始化，然后赋值，上面这三种都不能默认初始化）</li>
+
+<li><p>关于构造顺序，我们可以做个实验：</p>
 
 <pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+using std::string;
+using std::cout;
+using std::endl;
+class member{
+public:
+    member(int n):m(n){cout&lt;&lt;&quot;member &quot;&lt;&lt;m&lt;&lt;&quot; ctor&quot;&lt;&lt;endl;}
+    ~member(){cout&lt;&lt;&quot;member &quot;&lt;&lt;m&lt;&lt;&quot; dctor&quot;&lt;&lt;endl;}
+private:
+    int m; 
+};
+class grandpa{
+public:
+    grandpa(const string&amp; n=&quot;G&quot;):name(n){cout&lt;&lt;&quot;grand &quot;&lt;&lt;name&lt;&lt;&quot; ctor&quot;&lt;&lt;endl;}
+    ~grandpa(){cout&lt;&lt;&quot;grand &quot;&lt;&lt;name&lt;&lt;&quot; dctor&quot;&lt;&lt;endl;}
+private:
+    string name;
+};
+class father:public grandpa{
+public:
+    father(const string&amp; n=&quot;F&quot;):name(n){cout&lt;&lt;&quot;father &quot;&lt;&lt;name&lt;&lt;&quot; ctor&quot;&lt;&lt;endl;}
+    ~father(){cout&lt;&lt;&quot;father &quot;&lt;&lt;name&lt;&lt;&quot; dctor&quot;&lt;&lt;endl;}
+private:
+    string name;
+};
+class child:public father{
+public:
+    child(const string&amp; n=&quot;C&quot;):m1(1),m2(2),m3(3),name(n){cout&lt;&lt;&quot;child &quot;&lt;&lt;name&lt;&lt;&quot; ctor&quot;&lt;&lt;endl;}
+    ~child(){cout&lt;&lt;&quot;child &quot;&lt;&lt;name&lt;&lt;&quot; dctor&quot;&lt;&lt;endl;}
+private:
+    string name;
+    static member m4;
+    member m1,m2,m3;
+};
+member child::m4(4);
 int main(){
-    int val;
-    while(std::cin&gt;&gt;val){
-        std::cout&lt;&lt;val&lt;&lt;&quot; &quot;;
-    }
-    std::cout&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;after loop,val= &quot;&lt;&lt;val&lt;&lt;std::endl;
+    child ch;
     return 0;
 }
 </code></pre>
 
-<p>测试发现最终结束时，输入C+D(EOF)与输入非数字，最终val的值是不一样的</p>
-
-<pre><code class="language-shell">
-$ ./istest
-1
-1 $
-
-after loop,val= 0
-
-$ ./istest
-1
-1 ^D
-    
-after loop,val= 1
-
-</code></pre></li>
-
-<li><p><code>std::cout,std::cerr,std::clog</code>的区别</p>
-
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-int main(){
-    std::cout&lt;&lt;&quot;from cout&quot;&lt;&lt;std::endl;
-    std::clog&lt;&lt;&quot;from clog&quot;&lt;&lt;std::endl;
-    std::cerr&lt;&lt;&quot;from cerr&quot;&lt;&lt;std::endl;
-    return 0;
-}
+<pre><code class="language-shell">$ ./initorder.out
+member 4 ctor
+grand G ctor
+father F ctor
+member 1 ctor
+member 2 ctor
+member 3 ctor
+child C ctor
+child C dctor
+member 3 dctor
+member 2 dctor
+member 1 dctor
+father F dctor
+grand G dctor
+member 4 dctor
 </code></pre>
 
-<p>测试结果：</p>
+<p>总结一下：首先，类的静态变量和程序的全局变量一起初始化，然后类的父类初始化，然后类自身初始化，其中成员按照定义的顺序初始化，最后执行类自身的构造函数。析构的时候，完全反过来：先调用自己的析构，然后逆着成员的定义顺序析构成员，最后调用父类的析构函数。</p></li>
 
-<pre><code class="language-shell">$ ./istest &amp;&amp; echo &quot;======&quot; &amp;&amp; ./istest 2&gt;hehe
-from cout
-from clog
-from cerr
-======
-from cout
-</code></pre>
+<li><p>委托构造函数，嗯，好东西，有了这个就不需要之前的init辅助函数</p></li>
 
-<p>总结：
-    - cout 标准输出
-    - cerr 标准错误
-    - clog 标准错误（貌似带缓冲，没验证）</p></li>
+<li><p>explicit禁止隐式转换，切不能当成拷贝初始化，但可以用构造函数显示转换为临时对象，或者static_cast也可以</p></li>
+
+<li><p>聚合类的条件：</p>
+
+<ol>
+<li>所有成员public</li>
+<li>没定义任何构造函数</li>
+<li>没有类内初始值</li>
+<li>没有基类，没有虚函数</li>
+</ol></li>
 </ol>
 
 	</div>
@@ -164,7 +190,7 @@ from cout
 
 
   <div class="article-share" id="share">
-    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_1/" data-title="cpp primer 第一章笔记" data-tsina="2110117813" class="share clearfix">
+    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_7/" data-title="cpp primer 第七章笔记" data-tsina="2110117813" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -180,8 +206,8 @@ from cout
 
 
 var disqus_config = function () {
-this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_1/";
-this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_1/";
+this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_7/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_7/";
 };
 (function() { 
 var d = document, s = d.createElement('script');

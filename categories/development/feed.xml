@@ -6,8 +6,268 @@
     <description>Recent content in Development on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Tue, 19 Jul 2016 21:18:38 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 20 Jul 2016 16:36:02 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/categories/development/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>cpp primer 第七章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_7/</link>
+      <pubDate>Wed, 20 Jul 2016 16:36:02 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_7/</guid>
+      <description>&lt;p&gt;第七章，终于到正题了，类：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;只有在类中没有任何构造函数时，编译器才会生产合成默认构造函数；只有当类内部的内置类型被赋予类内初始值时，合成默认构造函数才有可能合适；如果类内包含其它的没有默认构造函数的类时，编译器不能为其生成合成默认构造函数；可以明确指定使用合成默认构造函数：&lt;code&gt;xxx()=default;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;继承的三种方式，参见&lt;a href=&#34;http://blog.csdn.net/complety/article/details/7493194&#34;&gt;文章&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;友元也会被继承，但是友元类不具有传递性；友元声明仅仅是友元声明，一般需要在类定义外加一个普通函数声明（一般类定义是放在头文件的，所以一般也需要这个普通函数声明），虽然有的编译器不这么要求&lt;/li&gt;
+&lt;li&gt;mutable关键字是说，即使类的实体是个const实体，其mutable成员也是可以改变的&lt;/li&gt;
+&lt;li&gt;类内初始值可以用＝和花括号&lt;/li&gt;
+&lt;li&gt;对于类中的const、引用或者未提供默认构造函数的类成员，必须用类内初始值或者构造函数的初始值列表来初始化，而不能直接在构造函数中“初始化”（原因很简单，构造函数中的“初始化”实际上是先对成员进行默认初始化，然后赋值，上面这三种都不能默认初始化）&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;关于构造顺序，我们可以做个实验：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;string&amp;gt;
+using std::string;
+using std::cout;
+using std::endl;
+class member{
+public:
+    member(int n):m(n){cout&amp;lt;&amp;lt;&amp;quot;member &amp;quot;&amp;lt;&amp;lt;m&amp;lt;&amp;lt;&amp;quot; ctor&amp;quot;&amp;lt;&amp;lt;endl;}
+    ~member(){cout&amp;lt;&amp;lt;&amp;quot;member &amp;quot;&amp;lt;&amp;lt;m&amp;lt;&amp;lt;&amp;quot; dctor&amp;quot;&amp;lt;&amp;lt;endl;}
+private:
+    int m; 
+};
+class grandpa{
+public:
+    grandpa(const string&amp;amp; n=&amp;quot;G&amp;quot;):name(n){cout&amp;lt;&amp;lt;&amp;quot;grand &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; ctor&amp;quot;&amp;lt;&amp;lt;endl;}
+    ~grandpa(){cout&amp;lt;&amp;lt;&amp;quot;grand &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; dctor&amp;quot;&amp;lt;&amp;lt;endl;}
+private:
+    string name;
+};
+class father:public grandpa{
+public:
+    father(const string&amp;amp; n=&amp;quot;F&amp;quot;):name(n){cout&amp;lt;&amp;lt;&amp;quot;father &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; ctor&amp;quot;&amp;lt;&amp;lt;endl;}
+    ~father(){cout&amp;lt;&amp;lt;&amp;quot;father &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; dctor&amp;quot;&amp;lt;&amp;lt;endl;}
+private:
+    string name;
+};
+class child:public father{
+public:
+    child(const string&amp;amp; n=&amp;quot;C&amp;quot;):m1(1),m2(2),m3(3),name(n){cout&amp;lt;&amp;lt;&amp;quot;child &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; ctor&amp;quot;&amp;lt;&amp;lt;endl;}
+    ~child(){cout&amp;lt;&amp;lt;&amp;quot;child &amp;quot;&amp;lt;&amp;lt;name&amp;lt;&amp;lt;&amp;quot; dctor&amp;quot;&amp;lt;&amp;lt;endl;}
+private:
+    string name;
+    static member m4;
+    member m1,m2,m3;
+};
+member child::m4(4);
+int main(){
+    child ch;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./initorder.out
+member 4 ctor
+grand G ctor
+father F ctor
+member 1 ctor
+member 2 ctor
+member 3 ctor
+child C ctor
+child C dctor
+member 3 dctor
+member 2 dctor
+member 1 dctor
+father F dctor
+grand G dctor
+member 4 dctor
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;总结一下：首先，类的静态变量和程序的全局变量一起初始化，然后类的父类初始化，然后类自身初始化，其中成员按照定义的顺序初始化，最后执行类自身的构造函数。析构的时候，完全反过来：先调用自己的析构，然后逆着成员的定义顺序析构成员，最后调用父类的析构函数。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;委托构造函数，嗯，好东西，有了这个就不需要之前的init辅助函数&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;explicit禁止隐式转换，切不能当成拷贝初始化，但可以用构造函数显示转换为临时对象，或者static_cast也可以&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;聚合类的条件：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;所有成员public&lt;/li&gt;
+&lt;li&gt;没定义任何构造函数&lt;/li&gt;
+&lt;li&gt;没有类内初始值&lt;/li&gt;
+&lt;li&gt;没有基类，没有虚函数&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>cpp primer 第六章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_6/</link>
+      <pubDate>Wed, 20 Jul 2016 14:49:08 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_6/</guid>
+      <description>&lt;p&gt;第六章主要是函数相关的内容：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;函数是可以没有定义只有声明的，只要你不用它（变量声明，类的前置声明也是）。。。&lt;/li&gt;
+&lt;li&gt;关于引用与指针，我觉得最重要的区别的话，主要是
+
+&lt;ol&gt;
+&lt;li&gt;引用初始化后就不能再改变引用的对象了，而指针可以指向不同的对象&lt;/li&gt;
+&lt;li&gt;有空指针没有空引用&lt;/li&gt;
+&lt;li&gt;引用是对象的别名，不是一个对象，而指针是一个专门用来存放地址的对象，所以sizeof二者会有区别&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;对于函数的参数，可以理解为c++只有传值，没有传引用，其传引用是通过对地址的传值实现的。数组传引用时会退化成指针，当使用引用来作为数组形参时，需要指定维度，不符合维度的数组不能匹配到该函数&lt;/li&gt;
+&lt;li&gt;又到了可爱的initializer_list，记住注意复制开销&lt;/li&gt;
+&lt;li&gt;关于函数return临时对象的问题，参见&lt;a href=&#34;http://www.cnblogs.com/xkfz007/articles/2506022.html&#34;&gt;文章&lt;/a&gt;，可见编译器帮我们做了很多事情，但是仍然注意后面的右值引用和完美转发&lt;/li&gt;
+&lt;li&gt;inline和constexpr函数可以定义多次，但是定义必须完全一样，所以一般把它们放到头文件中&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;对于函数对象和函数的比较，发现效率似乎差距不大（clang）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;chrono&amp;gt;
+auto func1(int t)-&amp;gt;int{
+    return ++t;
+}
+class func2{
+public:
+    auto operator()(int t)-&amp;gt;int{
+        return ++t;
+    }
+};
+inline int func3(int t){
+    return ++t;
+}
+static inline int func4(int t){
+    return ++t;
+}
+int main(){
+    int n,i=0;
+    std::chrono::high_resolution_clock::time_point t1,t2;
+    std::cout&amp;lt;&amp;lt;&amp;quot;input: &amp;quot;;
+    std::cin&amp;gt;&amp;gt;n;
+    std::cout&amp;lt;&amp;lt;std::endl;
+    std::cout&amp;lt;&amp;lt;&amp;quot;=========================&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(int j=0;j&amp;lt;n;++j){
+        i=func1(j);
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;time: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    std::cout&amp;lt;&amp;lt;&amp;quot;=========================&amp;quot;&amp;lt;&amp;lt;std::endl;
+    func2 func2i;
+    t1=std::chrono::high_resolution_clock::now();
+    for(int j=0;j&amp;lt;n;++j){
+        i=func2i(j);
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;time: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    std::cout&amp;lt;&amp;lt;&amp;quot;=========================&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(int j=0;j&amp;lt;n;++j){
+        i=func3(j);
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;time: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+    std::cout&amp;lt;&amp;lt;&amp;quot;=========================&amp;quot;&amp;lt;&amp;lt;std::endl;
+    t1=std::chrono::high_resolution_clock::now();
+    for(int j=0;j&amp;lt;n;++j){
+        i=func4(j);
+    }
+    t2=std::chrono::high_resolution_clock::now();
+    std::cout&amp;lt;&amp;lt;&amp;quot;time: &amp;quot;&amp;lt;&amp;lt;std::chrono::duration_cast&amp;lt;std::chrono::microseconds&amp;gt;(t2-t1).count()&amp;lt;&amp;lt;&amp;quot; microseconds&amp;quot;&amp;lt;&amp;lt;std::endl;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./functest.out
+input: 1000000000
+
+=========================
+time: 3859925 microseconds
+=========================
+time: 3849522 microseconds
+=========================
+time: 3647694 microseconds
+=========================
+time: 3865106 microseconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>cpp primer 第五章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_5/</link>
+      <pubDate>Wed, 20 Jul 2016 13:59:57 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_5/</guid>
+      <description>&lt;p&gt;第五章讲解语句：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;注意switch内部块中定义的变量，尽管在同一个作用域中（case后面不跟大括号的情况），但是只要是没有初始化的变量就不能使用，比如&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;switch(ch){
+case &#39;a&#39;:
+    string name;    //错误，可能绕开隐式初始化
+    int a=0;    //错误，可能绕开显示初始化
+    int b;  //正确，未初始化，可以在其他控制块中初始化
+    break;
+case &#39;b&#39;:
+    b=1;    //正确，赋值
+    if(name.empty())    //错误，虽然在作用域内，但没有初始化
+    //...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;简单有效的做法是，限定作用域，即在case后使用大括号&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;关于异常，这里引用陈硕在知乎上的回答：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;作者：陈硕
+链接：&lt;a href=&#34;http://www.zhihu.com/question/22889420/answer/22975569&#34;&gt;http://www.zhihu.com/question/22889420/answer/22975569&lt;/a&gt;
+来源：知乎
+著作权归作者所有，转载请联系作者获得授权。&lt;/p&gt;
+
+&lt;p&gt;整个 C++ exception 的行为在常见语言中是最奇葩的， 因为这个语言特性与 C++ 其他 feature（特别是确定性析构） 格格不入。在 C++ 中全面铺开使用异常会遇到其他语言中不存在的问题。&lt;/p&gt;
+
+&lt;p&gt;从网上容易找到一些公司/组织的C++编码规范，其中至少 Google、Mozilla、Qt、LLVM 这几家的规范是明确禁用异常的。前面三家或许可以用代码历史包袱、程序员C++水平参差不齐、保证可移植性等理由来解释，但是 LLVM 却不同。首先，LLVM 在 2003 年才发布第一版，是个21世纪的新项目，没什么历史包袱；更重要的是，LLVM 的作者同时也开发了 clang 这个 C++ 编译器，用 C++ 写 C++ 编译器的程序员恐怕是 C++ 程序员里对语言掌握得最好的那一批，如果他们都在项目中明确地禁用异常，这意味着什么呢？注意到 clang 源码已经用上了 C++11，那么“考虑移植性照顾老host编译器”这条理由似乎也不成立了。&lt;/p&gt;
+
+&lt;p&gt;C++ 引入异常的原因之一是为了能让构造函数报错（析构函数不能抛异常这是大家都知道的常识），毕竟构造函数没有返回值，没有异常的话调用方如何得知对象构造是否成功呢？但是编译器/标准库为了让构造函数能抛异常却是麻烦重重：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;数组元素构造时抛异常，前面已经构造好的元素要析构，还没有构造的元素不能析构。&lt;/li&gt;
+&lt;li&gt;构造函数的初始化列表里抛异常，前面已经构造好的成员和基类子对象要析构，还没有构造的成员则不能析构。而且这个异常捕获之后必须重新抛出（编译器强制），因为C++不允许“半吊子”构造的对象存在。&lt;/li&gt;
+&lt;li&gt;多继承中某个基类的构造函数抛异常，那么已经构造好的基类子对象要析构，还没有构造的基类子对象则不能析构。虚拟继承，虚基类只能析构一次，你慢慢想吧。&lt;/li&gt;
+&lt;li&gt;函数实参对象构造时抛异常，那么多个实参中已经构造好的实参对象要析构，尚未构造的实参对象不能析构。&lt;/li&gt;
+&lt;li&gt;std::vector 在 resizing 的时候某个元素的拷贝发生异常，那么前面已经拷贝的元素要析构，尚未拷贝的元素则不必也不能析构，去看 gcc vector::_M_insert_aux 的代码有多麻烦。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;（注脚：C++ 引入异常的另一个原因是让 dynamic_cast&lt;Derived&amp;&gt;(baseReference) 能报错，因为没有 null reference。还有一个原因是让 overloaded operator 能报错，毕竟 operator 的返回类型往往无法包含 error code，例如 operator=() 返回的是 Type&amp;amp;。C++ 也是唯一一个变量赋值有可能会抛异常的语言，例如 Person s; s = getPersonById(someId);，那么即便 getPersonById() 不抛异常也不能保证上一句赋值不抛异常。）&lt;/p&gt;
+
+&lt;p&gt;（注脚2：C++ 引入异常的政治原因是 Ada 支持异常，而 Ada 是 DoD 的指定官方语言，如果 C++ 不支持异常，那么 AT&amp;amp;T 贝尔实验室就不能拿 C++ 做 DoD 的项目。）&lt;/p&gt;
+
+&lt;p&gt;C++ 编译器要随时提防调用某个函数 foo 会抛异常，这会阻止一些优化，也会产生很多累赘的代码（随时准备析构那些调用 foo 函数前已经构造好的栈上对象）。因此 C++11 的 noexcept 应该大力推广。&lt;/p&gt;
+
+&lt;p&gt;C++ 的 exception specification 也很鸡肋，它不像 Java 那样在编译期检查（Java 似乎也流行使用 unchecked exception 了），而是在运行期检查，而且违反的后果是直接终止程序，那谁敢用啊？还不如用代码注释呢。有的编译器干脆就只支持语法而不实现功能（Exception Specifications）。C# 也不支持 exception specification，可见这是一项无用的语言特性，算是编程语言发展历史上走的弯路吧，可惜 Java/C++ 掉坑里了。&lt;/p&gt;
+
+&lt;p&gt;其他支持异常的语言几乎都有 GC，抛异常就抛了，不用担心析构，反正GC管着。只有 C++ 才有 exception safety 需要考虑，其他支持异常的语言都没有这一概念。&lt;/p&gt;
+
+&lt;p&gt;而且 Java 的 try-with-resource，C# 的 using，Python 的 with 在管理 function local scope 对象的生命期（资源、lock 释放）方面不比 RAII 麻烦。Go defer 要差一些，它是 function 级，不是 block 级，只能对付 return。 不过反正 Go 也没异常，有点小坑罢了，把函数写短点就能绕过。&lt;/p&gt;
+
+&lt;p&gt;RAII 的优势在于将对象的生命期管理与其他资源（锁、文件、网络连接等等）的管理整合，然后通过 smart pointers 一并解决了，这是 C++ 独一无二的优势。&lt;/p&gt;
+
+&lt;p&gt;如果写递归下降的 parser，那么内部用异常来报错似乎是合理的，对外返回一个 error code 即可。&lt;/p&gt;
+&lt;/blockquote&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;总之，呵呵～～&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>cpp primer 第四章笔记</title>
