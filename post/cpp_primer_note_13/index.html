@@ -2,18 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>cpp primer 第四章笔记 - Adro的作死笔记</title>
+  <title>cpp primer 第十三章笔记 - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="cpp primer 第四章笔记">
+  <meta name="description" content="cpp primer 第十三章笔记">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="cpp primer 第四章笔记 - Adro的作死笔记">
-  <meta itemprop="description" content="cpp primer 第四章笔记">
+  <meta itemprop="name" content="cpp primer 第十三章笔记 - Adro的作死笔记">
+  <meta itemprop="description" content="cpp primer 第十三章笔记">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="cpp primer 第四章笔记 - Adro的作死笔记" />
-  <meta name="twitter:description" content="cpp primer 第四章笔记" />
+  <meta name="twitter:title" content="cpp primer 第十三章笔记 - Adro的作死笔记" />
+  <meta name="twitter:description" content="cpp primer 第十三章笔记" />
   
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -62,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_4/" title="cpp primer 第四章笔记" itemprop="url">cpp primer 第四章笔记</a>
+      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_13/" title="cpp primer 第十三章笔记" itemprop="url">cpp primer 第十三章笔记</a>
   </h1>
   <p class="article-author">By
     
@@ -70,95 +70,73 @@
     
   </p>
   <p class="article-time">
-    <time datetime="2016-07-19 21:18:38 &#43;0800 CST" itemprop="datePublished">2016年07月19日</time>
+    <time datetime="2016-07-20 21:40:45 &#43;0800 CST" itemprop="datePublished">2016年07月20日</time>
   </p>
 </header>
 
 	<div class="article-content">
     
-    <p>第四章主要是表达式相关的内容：</p>
+    <p>嘿嘿，飙到第十三章了～～老司机的笑容像天上的弦月～～毕竟是补漏。。。</p>
 
 <ol>
-<li>除了<code>&amp;&amp; || ?: ,</code>四种操作符外，其他操作符都没有定义运算顺序（重要）</li>
+<li>拷贝构造函数通常不应该是explicit的，参数必须为引用类型（常量引用）</li>
+<li>合成的拷贝构造函数对于数组成员会逐一拷贝其元素</li>
+<li>编译器有时会绕过拷贝构造函数（优化为直接构造）</li>
+<li>三／五法则：析构函数，拷贝构造函数，拷贝赋值运算符，移动构造函数，移动赋值运算符，可以看成一个整体，通常需要定义其中一个也就意味着需要定义其余四个。</li>
+<li>新司机还记得<code>=default</code>不？</li>
+<li>阻止拷贝：旧标准可以把相关构造函数<strong><em>声明</em></strong>为private，不需要定义；新标准可以用<code>=delete</code>。当不能拷贝、赋值或销毁类的成员时，类的合成拷贝控制成员就被定义为删除的</li>
+<li>对于一个赋值运算符，编写时需要考虑：
 
-<li><p>sizeof是一种运算符，它不会对表达式进行求值，c++11允许用作用域运算符(::)来获取成员大小而不必提供一个实体（前提是，该成员是public的，活着调用方法是static的），对数组返回数组大小而不是指针大小，对vector和string这种返回其固定部分大小。</p>
+<ol>
+<li>一个对象赋值给它自身，要工作正常（所以要在析构当前对象前保存“新”对象）</li>
+<li>拷贝＋析构</li>
+</ol></li>
 
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;string&gt;
-class testc{
-public:
-    char pwc;
-    void update(){}
-private:
-    char wc;
-};
-int main(){
-    int a=44;
-    int ar[5];
-    std::string str(&quot;heheda!&quot;);
-    std::cout&lt;&lt;&quot;int : &quot;&lt;&lt;sizeof(a)&lt;&lt;&quot; &quot;&lt;&lt;sizeof(int)&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;int [5]: &quot;&lt;&lt;sizeof(ar)&lt;&lt;&quot; &quot;&lt;&lt;sizeof(int [5])&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;string :&quot;&lt;&lt;sizeof(str)&lt;&lt;&quot; &quot;&lt;&lt;sizeof(std::string)&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;class member(char): &quot;&lt;&lt;sizeof(testc::pwc)&lt;&lt;std::endl;
-    return 0;
-}
-</code></pre>
+<li><p>如果swap操作不会拷贝对象而只是交换指针（通常都是如此），那么可以利用“拷贝并交换”技术来编写赋值运算：</p>
 
-<pre><code class="language-shell">$ ./sizeoftest.out
-int : 4 4
-int [5]: 20 20
-string :24 24
-class member(char): 1
+<pre><code class="language-cpp">tc&amp; operator=(tc rhs){  //传值复制了rhs
+    swap(*this,rhs);    
+    return *this;
+}   //rhs也就是原来的本对象会自动析构
 </code></pre></li>
 
-<li><p>逗号运算符先算左边再算右边，最后返回右边，若右边结果为左值则返回的也是左值</p></li>
+<li><p>左值引用不能绑定到<strong><em>要求转换的表达式、字面常量、返回右值的表达式</em></strong>，但是常量左值引用可以哦，而右值引用则和左值引用完成相反</p>
 
-<li><p>大多数情况下数组退化为指针，有四种例外：decltype、取址运算符（&amp;），sizeof，typeid：</p>
+<pre><code class="language-cpp">int i=10;
+double &amp;rd=i;   //error
+int &amp;ri=30;     //error
+int &amp;rri=i+3;   //error
+</code></pre></li>
 
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-int main(){
-    int a[4];
-    std::cout&lt;&lt;&quot;int size: &quot;&lt;&lt;sizeof(int)&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;arr size: &quot;&lt;&lt;sizeof(a)&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;a[0] addr: &quot;&lt;&lt;&amp;a[0]&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;a addr: &quot;&lt;&lt;a&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;&amp;a :&quot;&lt;&lt;&amp;a&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;&amp;a[0]+1: &quot;&lt;&lt;&amp;a[0]+1&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;a+1: &quot;&lt;&lt;a+1&lt;&lt;std::endl;
-    std::cout&lt;&lt;&quot;&amp;a+1: &quot;&lt;&lt;&amp;a+1&lt;&lt;std::endl;
-    return 0;
+<li><p>右值短暂，都是临时对象，左值持久。</p></li>
+
+<li><p>右值和右值引用是不一样的，简单的说，右值就是临时量，不是变量，而右值引用是引用右值的变量，是个变量，它通过引用右值（临时量）将临时量变为变量，本来临时量马上就会消亡，你一用右值引用引用它，就把它变成一个持久的变量了，所以primer说，右值引用从绑定到其的临时量中“窃取”状态。同样的，右值引用是一个变量不是临时量，所以右值引用不能绑定右值引用（绕口。。。），还有，右值意味着它只有你这个所有者，你可以为所欲为（修改它）</p></li>
+
+<li><p>使用<code>std::move</code>可以将一个左值转换为右值引用，也就是告诉编译器，这个左值劳资要当成右值用，你放心，过会儿劳资就削了它！（也就是说除了销魂不能对它再做任何操作，起始还可以再赋值给他，但是不能直接使用它的值。。。）
+1.
+移动构造函数和移动赋值运算符，参数都是非const的右值引用，调用后移后对象应处于可析构状态（意思是说，假设把a移动给b，就算你在调用移动构造函数之后把a析构了，也不会影响到b的内容，主要是考虑指针的处理），再者二者不应该抛出异常，使用noexcept关键字（编译器看到这个关键字的话，在这个函数抛出异常时，会直接调用terminate()，同时，它也告诉标准库容器该类的移动构造函数不会抛出异常，否则，标准库会因为预防发生异常的时候需要恢复原状而使用拷贝语义）。</p></li>
+
+<li><p>拷贝左值，移动右值，没有移动就只能拷贝右值</p></li>
+
+<li><p>标准库的重载函数往往有两个版本：</p>
+
+<pre><code class="language-cpp">void push_back(const X&amp;);   //copy
+void push_back(X&amp;&amp;);    //move
+</code></pre>
+
+<p>拷贝操作对参数应该没有影响，故而必然是const的，而移动操作会对移后对象进行操作，所以必然是非const的</p></li>
+
+<li><p>可以在成员函数后面活着重载运算符后面加引用限定符表示this指向的对象只能是左值或者右值</p>
+
+<pre><code class="language-cpp">class foo{
+public:
+    foo&amp; operator=(const foo&amp;) &amp;;   //只有左值才能使用＝
+    void somefunc() &amp;&amp;;     //只有右值才能使用该函数
+    void hehe() const &amp;;    //只有const左值才能使用该函数，const必须在前
 }
-</code></pre>
+</code></pre></li>
 
-<pre><code class="language-shell">$ ./arrayaddr.out
-int size: 4
-arr size: 16
-a[0] addr: 0x7fff566947e0
-a addr: 0x7fff566947e0
-&amp;a :0x7fff566947e0
-&amp;a[0]+1: 0x7fff566947e4
-a+1: 0x7fff566947e4
-&amp;a+1: 0x7fff566947f0
-</code></pre>
-
-<p>可以发现当采取<code>&amp;a+1</code>这种形式时，与数组首地址相比，并不是单纯加4，而是加4*4，故而大胆推测，<code>&amp;a</code>的类型为<code>int [4]</code>（类似二维数组中的一维元素）</p></li>
-
-<li><p>指针的转换规则：</p>
-
-<ul>
-<li>0和nullptr可以转换成任意指针（空指针）</li>
-<li>任意非常量指针可以转换成<code>void*</code></li>
-<li>任意指针可以转换成<code>const void*</code></li>
-</ul></li>
-
-<li><p>显示转换：</p>
-
-<ul>
-<li><code>static_cast</code>就相当于c的强制类型转换</li>
-<li><code>const_cast</code>去除底层const属性，但是对转换后的对象（一般是指针，对其指向的对象）写操作是未定义的，而且不能改变变量类型</li>
-<li><code>reinterpret_cast</code>最危险的转换，相当于对同一个内存的地址做不同意义的解释（比如把一个int＊解释为一个char＊），依赖于机器</li>
-<li><code>dynamic_cast</code>将指向子类的父类型的指针转化为子类型，这个功能也可以由<code>static_cast</code>来实现，但是dy会在运行时检查父子类关系，而static只会在编译时检查</li>
-</ul></li>
+<li><p>至于重载函数，const限定符的成员函数和同名同参的普通成员函数构成重载，而不同引用限定符的同名同参成员函数之间也构成重载，重载的对象就是类本身是左值还是右值。另外，一旦在const限定符与普通重载函数之间的任何一个上用了引用限定符，那这一组重载函数中就都得用引用限定符了；</p></li>
 </ol>
 
 	</div>
@@ -188,7 +166,7 @@ a+1: 0x7fff566947e4
 
 
   <div class="article-share" id="share">
-    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_4/" data-title="cpp primer 第四章笔记" data-tsina="2110117813" class="share clearfix">
+    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_13/" data-title="cpp primer 第十三章笔记" data-tsina="2110117813" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -204,8 +182,8 @@ a+1: 0x7fff566947e4
 
 
 var disqus_config = function () {
-this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_4/";
-this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_4/";
+this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_13/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_13/";
 };
 (function() { 
 var d = document, s = d.createElement('script');
