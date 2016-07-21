@@ -6,8 +6,72 @@
     <description>Recent content in Development on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 20 Jul 2016 21:40:45 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 21 Jul 2016 09:18:59 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/categories/development/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>cpp primer 第十四章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_14/</link>
+      <pubDate>Thu, 21 Jul 2016 09:18:59 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_14/</guid>
+      <description>&lt;p&gt;第十四章主要讲运算符重载和类型转换（感觉每次第一句话都是废话）：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;不应该被重载的运算符：&lt;code&gt;&amp;amp;&amp;amp; || ,&lt;/code&gt;因为无法保留其运算顺序（还有逻辑运算符的短路运算属性），而对于逗号和取址运算，语言已经定义了其对于类的特殊含义&lt;/li&gt;
+&lt;li&gt;必须定义为成员函数的运算符：&lt;code&gt;= [] () -&amp;gt;&lt;/code&gt;（语言也禁止这样做）&lt;/li&gt;
+&lt;li&gt;对于需要对称性的运算符（＋），可能会转换任一端参数，定义为普通函数&lt;/li&gt;
+&lt;li&gt;对于输入输出运算符的重载，注意：
+
+&lt;ol&gt;
+&lt;li&gt;减少格式化输出，不应该添加换行符&lt;/li&gt;
+&lt;li&gt;输入输出运算符必须是非成员函数&lt;/li&gt;
+&lt;li&gt;输入运算符中应处理出错情况，负责从错误中恢复；输出运算符则不需要考虑错误&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;同时定义了算术运算符和相关的复合赋值运算，应优先使用复合赋值（开销小）&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;递增递减运算的原型：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;class X{
+public:
+    X&amp;amp; operator++();    //前置
+    X operator++(int);  //后置，其中参数不会用到
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;下表运算一般定义两个版本，普通的返回引用，加const限定符的返回常量引用&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;lambda表达式产生的类不含默认构造函数、赋值运算符、默认析构函数&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;cpp的可调用对象有：函数、函数指针、lambda表达式、bind对象、函数对象&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;std::function模版可以用来存放或者说是接受可调用对象，但是不能放重载函数，解决方案是使用函数指针活着lambda给重载函数做一个“别名”。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;类型转换函数，可以定义为转换成任何能作为函数返回类型的类型（数组、函数类型就不行，但是数组指针和函数指针可以）；必须是类的成员函数；无返回类型参数列表；通常const限定：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;operator type() const;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;显示的类型转换运算符，就是在前面加explicit，使用时必须用cast。例外：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;if，while，do语句条件部分&lt;/li&gt;
+&lt;li&gt;for语句条件部分&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;! || &amp;amp;&amp;amp;&lt;/code&gt;运算对象&lt;/li&gt;
+&lt;li&gt;条件运算符表达式（?:）的条件部分&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;这些语句中会隐式的调用显示类型转换运算符中转换为bool的那类。比如io库中，我们经常用：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;while(cin&amp;gt;&amp;gt;n){
+...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;所以，一般向bool型的类型转换我们可以大胆的写成explicit的（一般也只定义向bool的转换）&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     
     <item>
       <title>cpp primer 第十三章笔记</title>
@@ -507,7 +571,9 @@ const auto&amp;amp; for: 5508764 microseconds
       <pubDate>Tue, 19 Jul 2016 15:16:37 +0800</pubDate>
       
       <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_2/</guid>
-      <description>&lt;p&gt;第二章主要讲的是基本类型，需要注意的有：&lt;/p&gt;
+      <description>
+
+&lt;p&gt;第二章主要讲的是基本类型，需要注意的有：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;同一个表达式混用&lt;strong&gt;&lt;em&gt;有符号&lt;/em&gt;&lt;/strong&gt;和&lt;strong&gt;&lt;em&gt;无符号&lt;/em&gt;&lt;/strong&gt;数，会自动转换成&lt;strong&gt;&lt;em&gt;无符号&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
@@ -595,6 +661,28 @@ copy a class!
 
 &lt;li&gt;&lt;p&gt;注意类内初始值的初始化顺序：类内初始值－》构造函数初始化列表－》构造函数体&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;2016-07-21添加&#34;&gt;2016-07-21添加&lt;/h2&gt;
+
+&lt;p&gt;我又回过头来看了一下，关于initializer_list，之前的示例代码中使用的是左值，所以拷贝了两次，但是当我给类添加移动构造函数并使用std::move将其转换为右值后：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
+std::vector&amp;lt;tc&amp;gt; tcv3{std::move(t1),std::move(t2),std::move(t3)};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;===============
+move a class!
+move a class!
+move a class!
+copy a class!
+copy a class!
+copy a class!
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;出现了这种结果。
+似乎不太对，按道理来说initializer_list的设计应该是为了方便用临时量来构造一个集合（按我自己的理解），既然是临时量标准库应该提供转移语义，现在看来并没有。其它的情况我找到了stackoverflow上的一个&lt;a href=&#34;http://stackoverflow.com/questions/8193102/initializer-list-and-move-semantics&#34;&gt;讨论&lt;/a&gt;，显然想要手动从里面转移出临时量也不可以，怪怪的感觉&lt;/p&gt;
 </description>
     </item>
     
