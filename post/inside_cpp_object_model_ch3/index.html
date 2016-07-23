@@ -2,19 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>搬家记录 - Adro的作死笔记</title>
+  <title>深入理解cpp对象模型 第三章笔记 - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～">
+  <meta name="description" content="深入理解cpp对象模型 第三章笔记">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="搬家记录 - Adro的作死笔记">
-  <meta itemprop="description" content="折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～">
+  <meta itemprop="name" content="深入理解cpp对象模型 第三章笔记 - Adro的作死笔记">
+  <meta itemprop="description" content="深入理解cpp对象模型 第三章笔记">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="搬家记录 - Adro的作死笔记" />
-  
-  <meta name="twitter:description" content="hehe...">
+  <meta name="twitter:title" content="深入理解cpp对象模型 第三章笔记 - Adro的作死笔记" />
+  <meta name="twitter:description" content="深入理解cpp对象模型 第三章笔记" />
   
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -63,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://shamaoxiaogui.github.io/post/FirstPost/" title="搬家记录" itemprop="url">搬家记录</a>
+      <a href="http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch3/" title="深入理解cpp对象模型 第三章笔记" itemprop="url">深入理解cpp对象模型 第三章笔记</a>
   </h1>
   <p class="article-author">By
     
@@ -71,13 +70,168 @@
     
   </p>
   <p class="article-time">
-    <time datetime="2016-07-17 13:09:40 &#43;0800 CST" itemprop="datePublished">2016年07月17日</time>
+    <time datetime="2016-07-24 11:10:27 &#43;0800 CST" itemprop="datePublished">2016年07月24日</time>
   </p>
 </header>
 
 	<div class="article-content">
     
-    <p>折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～</p>
+    <p>前言描述了一个很有趣的问题，下面的类X，Y，Z，和A的sizeof各是多大？</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+struct X{};
+struct Y:public virtual X{};
+struct Z:public virtual X{};
+struct A:public Y,public Z{};
+int main(){
+    std::cout&lt;&lt;&quot;X: &quot;&lt;&lt;sizeof(X)&lt;&lt;std::endl;
+    std::cout&lt;&lt;&quot;Y: &quot;&lt;&lt;sizeof(Y)&lt;&lt;std::endl;
+    std::cout&lt;&lt;&quot;Z: &quot;&lt;&lt;sizeof(Z)&lt;&lt;std::endl;
+    std::cout&lt;&lt;&quot;A: &quot;&lt;&lt;sizeof(A)&lt;&lt;std::endl;
+    return 0;
+}
+</code></pre>
+
+<pre><code class="language-shell">$ ./sizeof.out
+X: 1
+Y: 8
+Z: 8
+A: 16
+</code></pre>
+
+<p>我们来分析一下。首先，注意到上面三个类都是所谓的空类，就是没有数据成员的。</p>
+
+<ol>
+<li><p>对于A，确实是个空类，没有虚函数意味着没有虚表指针，没有继承关系也不需要编译器添加特别的数据部分。这时他的大小是1个字节，因为为了使A的不同实例有不同的地址，所以编译器对其进行了小填充。</p>
+
+<pre><code class="language-cpp">struct A{
+    char _ch;
+};
+</code></pre></li>
+
+<li><p>对于X和Y，其实并不是完全的空类。虽然没有虚表指针，但是它们虚继承了A，所以编译器必然会给它们添加一些成员：添加一个指针，指向虚基类或一个表格，表格中存放虚基类的地址或者其偏移量。我们来分析下这种做法。我用的mac是64位机，也就是指针大小为8字节，那么Y／Z的大小为<code>8(virtual base pointer)+1(virtual base class)+7(alignment padding)=16bytes</code>。</p>
+
+<pre><code class="language-cpp">struct Y{
+    void *vbtr;     //to A, 8bytes
+    A aa;   //1byte
+    //padding 7bytes
+};
+</code></pre>
+
+<p>而结果为8byte与我们的计算不复。这里实际上编译器执行了一种优化：空虚基类（empty virtual base class ）通常用于提供一个virtual interface，那就将这种基类当作优化为派生类的数据成员好了，也就是直接将它放到派生类的开头部分，不再需要用虚基类指针指向它。这样的话，之前“空”的派生类现在“有”了一个成员，那么就没有必要给他添加1byte来区分类的不同对象，也就是将上面第一条的1个字节给省掉了，那么也就不需要最后7个字节的alignment padding了，而需要的是对虚基类占用空间的padding。所以大小为<code>1(virtual base class)+7(alignment padding)=8bytes</code>。反过来，如果X中原本就有数据成员，就不会出现这种编译器优化差异。</p>
+
+<pre><code class="language-cpp">struct Y{
+    A aa;   //1byte
+    //padding 7bytes
+};
+</code></pre></li>
+
+<li><p>最后来看A，记住在继承链中不论出现多少次，虚基类只有一个实体。假设编译器没有优化：<code>8(vbtr in Y)+8(vbtr in X)+1(virtual base class)+7(alignment padding)=24bytes</code></p>
+
+<pre><code class="language-cpp">struct A{
+    void *vbtr_Y;   //vbtr in Y, 8bytes
+    void *vbtr_X;   //vbtr in X, 8bytes
+    A aa;   //virtual base class, 1byte
+    //padding 7bytes
+};
+</code></pre>
+
+<p>而进行优化后，大小为<code>8(Y)+8(Z)=16bytes</code>。</p>
+
+<pre><code class="language-cpp">struct A{
+    Y yy;   // 8bytes
+    Z zz;   // 8bytes
+}
+</code></pre></li>
+</ol>
+
+<hr />
+
+<ol>
+<li><p>现代C++标准对类的成员函数的解析，是在对类的解析完成后才开始的。所以，将类成员声明在成员函数之后，对成员函数中调用这些成员的语义没什么影响，但是，成员函数的签名却是按顺序解析的，即在类完全解析完之前，成员函数签名就解析完了，这有可能带来如下的影响：</p>
+
+<pre><code class="language-cpp">typedef int length;
+extern int x;
+struct someclass{
+    //...
+    length func(){return x;} //这里编译器对x的解读是没问题的，因为到类解析完编译器才会解析成员函数的内容。但是对于声明中的length就不是这样了，它会按顺序解析，也就会把length解析为int
+    //...
+private:
+    typedef double length;
+    length x;
+};
+</code></pre>
+
+<p>所以，<strong><em>永远把类要用到的typrdef放到类声明的起始处</em></strong></p></li>
+
+<li><p>对于类中的数据成员，标准只规定，同一access section（private。。。）中靠后的数据成员地址高，并没有说一定要连续。所以有时为了内存对齐，成员直接会有padding。静态成员不管声明在哪都不会占空间。vptr的位置视编译器而定，大多放在类的开始。</p></li>
+
+<li><p>类的成员的存取。</p>
+
+<ol>
+<li><p>静态成员，静态成员存储在全局区，所以类的继承关系、访问权限、指针还是对象访问，用类直接访问还是用对象访问对其访问效率都没有影响。要注意的是下面亮点：</p>
+
+<ol>
+<li><p>见如下代码：</p>
+
+<pre><code class="language-cpp">foobar().chunkSize=500;
+//
+(void)foobar();
+Point3d.chunkSize=500;
+</code></pre>
+
+<p>编译器会进行如上变换。</p></li>
+
+<li><p>如果两个不同的类都声明了同名的静态成员，那么编译器会进行name-mangling，变换齐名称</p></li>
+</ol></li>
+
+<li><p>非静态成员：</p>
+
+<pre><code class="language-cpp">origin._y=0.0;
+//
+*(&amp;origin+(&amp;Point3d::_y-1))=0.0;
+</code></pre>
+
+<p>这里编译器会进行地址的转化，转化为类的地址加上成员的偏移地址。之所以要减一，是因为类成员指针总是指向类成员加一的位置，这样就可以区分一个类成员指针没有指向任何一个成员的情况。
+对于如下代码：</p>
+
+<pre><code class="language-cpp">origin.x=0.0;
+pt-&gt;x=0.0;  //pt=&amp;origin
+</code></pre>
+
+<p>在通常，执行效率没有任何不同，但是，如果origin是一个虚拟继承的派生类，并且x是派生类的成员，这时效率就会有重大差异。因为在编译时不知道pt中存放的具体是哪种类型，就无法用静态地址去替换它，只能依靠一些动态手段（vptr、vbtr）；而origin的类型是可以确定的，编译器会解析出它的静态地址。</p></li>
+</ol></li>
+
+<li><p>继承时的布局。一般是派生类扩展基类，虚表指针放在顶部。多继承时，内存上先放第一个基类，再放第二个。。。涉及到虚基类，记住虚基类只有一个实体，直接继承虚基类的派生类会有虚基类指针，指向虚基类或者是其偏移量。</p></li>
+
+<li><p>关于成员存取的效率，也许对于虚拟继承基类中成员的存取会慢一点，但是现代编译器的优化都做的比较好，问题不大。</p></li>
+
+<li><p>最后，类成员指针总是存储的是成员在类内的偏移量，书上说这个偏移量还会加一，以区分其不指向对象的情况，但是g++测试表面编译器对此进行了内部优化，使其直接表示偏移量。</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;cstdio&gt;
+struct sc{
+    virtual void func(){}
+    char ch;
+    int x;
+};
+int main(){
+    sc scc;
+    printf(&quot;&amp;scc.ch %p\n&quot;,&amp;scc.ch);
+    printf(&quot;&amp;scc.x %p\n&quot;,&amp;scc.x);
+    printf(&quot;sc::ch %p\n&quot;,&amp;sc::ch);
+    printf(&quot;sc::x %p\n&quot;,&amp;sc::x);
+    return 0;
+}
+</code></pre>
+
+<pre><code class="language-shell">$ ./classptr.out
+&amp;scc.ch 0x7fff5d4b37f0
+&amp;scc.x 0x7fff5d4b37f4
+sc::ch 0x8
+sc::x 0xc
+</code></pre></li>
+</ol>
 
 	</div>
   <footer class="article-footer clearfix">
@@ -86,7 +240,9 @@
 <div class="article-tags">
   <span></span>
   
-  <a href="http://shamaoxiaogui.github.io/tags/%E6%9D%82%E8%B0%88">杂谈</a>
+  <a href="http://shamaoxiaogui.github.io/tags/development">Development</a>
+  
+  <a href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;">c&#43;&#43;</a>
   
 </div>
 
@@ -94,8 +250,17 @@
 
 
 
+<div class="article-categories">
+  <span></span>
+  
+  <a class="article-category-link" href="http://shamaoxiaogui.github.io/categories/development">Development</a>
+  
+</div>
+
+
+
   <div class="article-share" id="share">
-    <div data-url="http://shamaoxiaogui.github.io/post/FirstPost/" data-title="搬家记录" data-tsina="2110117813" class="share clearfix">
+    <div data-url="http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch3/" data-title="深入理解cpp对象模型 第三章笔记" data-tsina="2110117813" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -111,8 +276,8 @@
 
 
 var disqus_config = function () {
-this.page.url = "http://shamaoxiaogui.github.io/post/FirstPost/";
-this.page.identifier = "http://shamaoxiaogui.github.io/post/FirstPost/";
+this.page.url = "http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch3/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch3/";
 };
 (function() { 
 var d = document, s = d.createElement('script');
