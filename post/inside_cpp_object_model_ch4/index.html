@@ -2,18 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>cpp primer 第三章笔记 - Adro的作死笔记</title>
+  <title>深入理解cpp对象模型 第四章笔记 - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="cpp primer 读书笔记">
+  <meta name="description" content="深入理解cpp对象模型 第四章笔记">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="cpp primer 第三章笔记 - Adro的作死笔记">
-  <meta itemprop="description" content="cpp primer 读书笔记">
+  <meta itemprop="name" content="深入理解cpp对象模型 第四章笔记 - Adro的作死笔记">
+  <meta itemprop="description" content="深入理解cpp对象模型 第四章笔记">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="cpp primer 第三章笔记 - Adro的作死笔记" />
-  <meta name="twitter:description" content="cpp primer 读书笔记" />
+  <meta name="twitter:title" content="深入理解cpp对象模型 第四章笔记 - Adro的作死笔记" />
+  <meta name="twitter:description" content="深入理解cpp对象模型 第四章笔记" />
   
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -62,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://shamaoxiaogui.github.io/post/cpp_primer_note_3/" title="cpp primer 第三章笔记" itemprop="url">cpp primer 第三章笔记</a>
+      <a href="http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch4/" title="深入理解cpp对象模型 第四章笔记" itemprop="url">深入理解cpp对象模型 第四章笔记</a>
   </h1>
   <p class="article-author">By
     
@@ -70,70 +70,41 @@
     
   </p>
   <p class="article-time">
-    <time datetime="2016-07-19 17:05:39 &#43;0800 CST" itemprop="datePublished">2016年07月19日</time>
+    <time datetime="2016-07-26 10:31:23 &#43;0800 CST" itemprop="datePublished">2016年07月26日</time>
   </p>
 </header>
 
 	<div class="article-content">
     
-    <p>第三章主要讲vector和string</p>
+    <p>第四章主要是对成员函数的讲解：</p>
 
 <ol>
-<li>string到底是不是以\0结尾的？c++11中规定<strong><em>是</em></strong>。但是不要依赖这个特性，乖乖的用size()；但是getline的时候换行符确实丢掉了</li>
+<li>对于static成员函数：
 
-<li><p>auto for循环，注意效率，有些时候auto for效率更高（迭代器最慢～～）</p>
+<ol>
+<li>不可以直接存取nonstatic成员</li>
+<li>不可以是const限定的</li>
+</ol></li>
 
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;chrono&gt;
-#include &lt;string&gt;
-int main(){
+<li><p>对于非静态成员函数的处理：</p>
+
+<ol>
+<li>在函数签名（函数名，参数数量，参数类型）中添加一个新参数，this指针。</li>
+<li>将其中对非静态成员的存取改为this指针操作</li>
+</ol>
+
+<pre><code class="language-cpp">struct Someclass{
+    void func(){n+=3;}
     int n;
-    char ch;
-    std::cout&lt;&lt;&quot;input n: &quot;;
-    std::cin&gt;&gt;n;
-    std::cout&lt;&lt;std::endl;
-    std::string str(n,'c');
-    std::chrono::high_resolution_clock::time_point t1,t2;
-    t1=std::chrono::high_resolution_clock::now();
-    for(int i=0;i&lt;n;++i){
-        ch=str[i];
-    }
-    t2=std::chrono::high_resolution_clock::now();
-    std::cout&lt;&lt;&quot;for: &quot;&lt;&lt;std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(t2-t1).count()&lt;&lt;&quot; microseconds&quot;&lt;&lt;std::endl;
-    t1=std::chrono::high_resolution_clock::now();
-    for(auto t:str){
-        ch=t;
-    }
-    t2=std::chrono::high_resolution_clock::now();
-    std::cout&lt;&lt;&quot;auto for: &quot;&lt;&lt;std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(t2-t1).count()&lt;&lt;&quot; microseconds&quot;&lt;&lt;std::endl;
-    t1=std::chrono::high_resolution_clock::now();
-    for(auto &amp;t:str){
-        ch=t;
-    }
-    t2=std::chrono::high_resolution_clock::now();
-    std::cout&lt;&lt;&quot;auto&amp; for: &quot;&lt;&lt;std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(t2-t1).count()&lt;&lt;&quot; microseconds&quot;&lt;&lt;std::endl;
-    t1=std::chrono::high_resolution_clock::now();
-    for(const auto &amp;t:str){
-        ch=t;
-    }
-    t2=std::chrono::high_resolution_clock::now();
-    std::cout&lt;&lt;&quot;const auto&amp; for: &quot;&lt;&lt;std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(t2-t1).count()&lt;&lt;&quot; microseconds&quot;&lt;&lt;std::endl;
-    return 0;
+};
+Someclass::func();
+//expand to
+void func(Someclass *const this){ //magic here
+    this-&gt;n+=3;
 }
 </code></pre>
 
-<pre><code class="language-shell">$ ./fortest.out
-input n: 1000000000
-
-for: 9104902 microseconds
-auto for: 5651329 microseconds
-auto&amp; for: 5445633 microseconds
-const auto&amp; for: 5508764 microseconds
-</code></pre>
-
-<p>但是切记范围for不能改变循环序列的大小！！！</p></li>
-
-<li><p>string的c_str()返回的char*字符串有可能不保证一直有效！！！</p></li>
+<p>注意到扩展出的this是一个const的指针，也就是说在非静态成员函数中我们不能修改传入的this指针。同样，如果非静态成员函数是const限定的，那么传入的const会同时有顶层和底层const属性，也就限定了函数不得修改this和this指向的类。</p></li>
 </ol>
 
 	</div>
@@ -163,7 +134,7 @@ const auto&amp; for: 5508764 microseconds
 
 
   <div class="article-share" id="share">
-    <div data-url="http://shamaoxiaogui.github.io/post/cpp_primer_note_3/" data-title="cpp primer 第三章笔记" data-tsina="2110117813" class="share clearfix">
+    <div data-url="http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch4/" data-title="深入理解cpp对象模型 第四章笔记" data-tsina="2110117813" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -179,8 +150,8 @@ const auto&amp; for: 5508764 microseconds
 
 
 var disqus_config = function () {
-this.page.url = "http://shamaoxiaogui.github.io/post/cpp_primer_note_3/";
-this.page.identifier = "http://shamaoxiaogui.github.io/post/cpp_primer_note_3/";
+this.page.url = "http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch4/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch4/";
 };
 (function() { 
 var d = document, s = d.createElement('script');
