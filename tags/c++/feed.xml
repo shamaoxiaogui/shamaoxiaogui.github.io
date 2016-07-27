@@ -6,8 +6,98 @@
     <description>Recent content in C&#43;&#43; on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 27 Jul 2016 09:33:07 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 27 Jul 2016 13:23:23 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>convariant return type and override</title>
+      <link>http://shamaoxiaogui.github.io/post/covariant_and_override/</link>
+      <pubDate>Wed, 27 Jul 2016 13:23:23 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/covariant_and_override/</guid>
+      <description>&lt;p&gt;我们都知道在类的继承体系中，想要override一个虚方法，要求新方法的函数返回类型以及函数签名同被覆盖的方法相同，也就是说，下面的代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+using namespace std;
+struct base{
+    virtual int func(){cout&amp;lt;&amp;lt;&amp;quot;base func&amp;quot;&amp;lt;&amp;lt;endl;return 0;}
+    virtual ~base(){}
+};
+struct derived:public base{
+    virtual double func() override {cout&amp;lt;&amp;lt;&amp;quot;derivied func&amp;quot;&amp;lt;&amp;lt;endl;return 3.14;}
+};
+int main(){
+    base *bp=new derived;
+    bp-&amp;gt;func();
+    delete bp;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;是不能通过编译的。然而有一种例外情况，就是当新方法相对于被覆盖的方法而言，有convariant返回值类型的话，允许返回值类型不一致：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;/* Inheritance hierarchies
+
+         NetServer
+             |
+             ^
+            / \
+NetServerTCP   NetServerSCTP
+
+
+         NetClient
+             |
+             ^
+            / \
+NetClientTCP   NetClientSCTP
+
+*/
+
+class NetServer {
+public:
+    virtual NetClient* acceptConnection() = 0;
+};
+
+class NetServerTCP : public NetServer {
+public:
+    virtual NetClientTCP* acceptConnection();
+};
+
+class NetServerSCTP : public NetServer {
+public:
+    virtual NetClientSCTP* acceptConnection();
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样的override是允许的。c++标准中：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The return type of an overriding function shall be either identical to the return type of the overridden function or covariant with the classes of the functions. If a function D::f overrides a function B::f, the return type of the functions are covariant if the satisfy the following criteria:&lt;/p&gt;
+
+&lt;p&gt;both are pointers to classes or references to classes98)&lt;/p&gt;
+
+&lt;p&gt;the class in the return type of B::f is the same class as the class in the return type of D::f or, is an unambiguous direct or indirect base class of the class in the return type of D::f and is accessible in D&lt;/p&gt;
+
+&lt;p&gt;both pointers or references have the same cv-qualification and the class type in the return type of D::f has the same cv-qualification as or less cv-qualification than the class type in the return type of B::f.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;注意第三条关于cv-qualification，举个例子就是可以这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct base{
+    const base* func(){return this;};
+};
+struct derivied: public base{
+    derivied* func(){return this;}
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但是不能反过来。&lt;/p&gt;
+
+&lt;p&gt;总结一下，covariant返回值的情况简单来说就是如果在代码的某个位置可以用D代替B（D派生自B），那么就可以使用返回值为D的指针或引用的同签名函数override B中的虚函数。&lt;/p&gt;
+
+&lt;p&gt;最后，记住const限定符修饰的方法与无const限定符修饰的是不同的函数，不会互相override，只会够成重载（overload）关系。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>const类和default constructor</title>
@@ -1761,75 +1851,6 @@ copy a class!
 
 &lt;p&gt;出现了这种结果。
 似乎不太对，按道理来说initializer_list的设计应该是为了方便用临时量来构造一个集合（按我自己的理解），既然是临时量标准库应该提供转移语义，现在看来并没有。其它的情况我找到了stackoverflow上的一个&lt;a href=&#34;http://stackoverflow.com/questions/8193102/initializer-list-and-move-semantics&#34;&gt;讨论&lt;/a&gt;，显然想要手动从里面转移出临时量也不可以，怪怪的感觉&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>cpp primer 第一章笔记</title>
-      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_1/</link>
-      <pubDate>Tue, 19 Jul 2016 14:20:39 +0800</pubDate>
-      
-      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_1/</guid>
-      <description>&lt;p&gt;第一章只是一个引入，要注意的有：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;&lt;code&gt;std::cin&lt;/code&gt;在读到EOF的情形&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
-int main(){
-    int val;
-    while(std::cin&amp;gt;&amp;gt;val){
-        std::cout&amp;lt;&amp;lt;val&amp;lt;&amp;lt;&amp;quot; &amp;quot;;
-    }
-    std::cout&amp;lt;&amp;lt;std::endl;
-    std::cout&amp;lt;&amp;lt;&amp;quot;after loop,val= &amp;quot;&amp;lt;&amp;lt;val&amp;lt;&amp;lt;std::endl;
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;测试发现最终结束时，输入C+D(EOF)与输入非数字，最终val的值是不一样的&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;
-$ ./istest
-1
-1 $
-
-after loop,val= 0
-
-$ ./istest
-1
-1 ^D
-    
-after loop,val= 1
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;code&gt;std::cout,std::cerr,std::clog&lt;/code&gt;的区别&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
-int main(){
-    std::cout&amp;lt;&amp;lt;&amp;quot;from cout&amp;quot;&amp;lt;&amp;lt;std::endl;
-    std::clog&amp;lt;&amp;lt;&amp;quot;from clog&amp;quot;&amp;lt;&amp;lt;std::endl;
-    std::cerr&amp;lt;&amp;lt;&amp;quot;from cerr&amp;quot;&amp;lt;&amp;lt;std::endl;
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;测试结果：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./istest &amp;amp;&amp;amp; echo &amp;quot;======&amp;quot; &amp;amp;&amp;amp; ./istest 2&amp;gt;hehe
-from cout
-from clog
-from cerr
-======
-from cout
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;总结：
-    - cout 标准输出
-    - cerr 标准错误
-    - clog 标准错误（貌似带缓冲，没验证）&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
 </description>
     </item>
     
