@@ -6,8 +6,87 @@
     <description>Recent content on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Tue, 26 Jul 2016 14:32:39 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 27 Jul 2016 09:33:07 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>const类和default constructor</title>
+      <link>http://shamaoxiaogui.github.io/post/const_and_default_ctor/</link>
+      <pubDate>Wed, 27 Jul 2016 09:33:07 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/const_and_default_ctor/</guid>
+      <description>&lt;p&gt;今天实验程序的时候，出现这样一个问题：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct statictest{
+    // virtual void func(){}
+    // virtual ~statictest(){}
+private:
+    int n;
+};
+int main(){
+     const statictest st;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ make
+g++ -std=c++11 -Wall static.cpp -o static.out
+static.cpp:14:23: error: default initialization of an object of const type
+      &#39;const statictest&#39; without a user-provided default constructor
+     const statictest st;
+                      ^
+static.cpp:14:25: note: add an explicit initializer to initialize &#39;st&#39;
+     const statictest st;
+                        ^
+                        {}
+static.cpp:10:9: warning: private field &#39;n&#39; is not used [-Wunused-private-field]
+    int n;
+        ^
+1 warning and 1 error generated.
+make: *** [static] Error 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;const类不能使用编译器提供的默认初始化？
+去stackoverflow查了一下，发现标准上说：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If a program calls for the default initialization of an object of a const-qualified type T, T shall be a class type with a user-provided default constructor.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;大写的囧，让我来猜测下标准的意图。&lt;/p&gt;
+
+&lt;p&gt;当我们写程序，写一个const变量时，其值是在定义时初始化后不能更改的，所以对类而言，定义一个const类又使用了默认初始化，那我们就必须告诉编译器我们希望默认初始化给这个类以初值，因为以后也不能给它赋值。所以需要一个用户定义的默认初始化函数。
+囧囧的是，有大神提出了这种玩法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct statictest{
+    statictest();
+    // virtual void func(){}
+    // virtual ~statictest(){}
+private:
+    int n;
+};
+inline statictest::statictest()=default;
+int main(){
+     const statictest st;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;是的，可以编译通过，因为标准说：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;hellip; A special member function is user-provided if it is user-declared and not explicitly defaulted or deleted on its first declaration. &amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;言归正传，似乎实际当中像开头这样，直接定义一个const对象的不多，但是如果一定要这样，有这么几个办法：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;定义一个默认构造函数（好吧。。。）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;const A a=A();&lt;/code&gt;相当于&lt;code&gt;const int a=3;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;const A a{};&lt;/code&gt;值初始化&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     
     <item>
       <title>aggregates and pod</title>
@@ -376,7 +455,43 @@ void func(Someclass *const this){ //magic here
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;注意到扩展出的this是一个const的指针，也就是说在非静态成员函数中我们不能修改传入的this指针。同样，如果非静态成员函数是const限定的，那么传入的const会同时有顶层和底层const属性，也就限定了函数不得修改this和this指向的类。&lt;/p&gt;&lt;/li&gt;
+&lt;p&gt;注意到扩展出的this是一个const的指针，也就是说在非静态成员函数中我们不能修改传入的this指针。同样，如果非静态成员函数是const限定的，那么传入的const会同时有顶层和底层const属性，也就限定了函数不得修改this和this指向的类。
+c++保证，非静态成员函数至少应该和一般的非成员函数有相同的效率。
+对函数名的处理，一般在函数名中添加所属类、函数签名（不包括函数返回值）信息，这样来区分重载函数以及父子类间的虚函数等。这样在编译链接不同的文件时，如果函数参数类型不同链接会出错，但是如果函数返回值类型声明错了就没法检查出来了（不同的编译器都不太一样）&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;对于指针或者引用调用的虚函数，编译器会将其扩展为由虚表指针指向的虚表中的相应函数指针，效率会损失。而由对象调用的虚函数，则复合一般成员函数调用规则，效率高如果虚函数是inline的，使用对象调用时编译器可以将其展开，效率会更高。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;对于静态成员函数：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;不能直接存取类中的非静态成员&lt;/li&gt;
+&lt;li&gt;不能被声明为const、volatile、virtual（原因在于，静态成员函数被编译器当作非成员函数对待，不会传给他类的this指针，而const和volatile修饰的函数需要传入一个&lt;code&gt;const A * const this&lt;/code&gt;或&lt;code&gt;volatile A * const this&lt;/code&gt;指针，而virtual函数也需要this指针来查找虚表）&lt;/li&gt;
+&lt;li&gt;不需要经由对象才能调用&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+struct statictest{
+    // static void hehe()const{std::cout&amp;lt;&amp;lt;&amp;quot;static func&amp;quot;&amp;lt;&amp;lt;std::endl;}
+    // static void hehe()volatile{std::cout&amp;lt;&amp;lt;&amp;quot;static func&amp;quot;&amp;lt;&amp;lt;std::endl;}
+    // static virtual void hehe(){std::cout&amp;lt;&amp;lt;&amp;quot;static func&amp;quot;&amp;lt;&amp;lt;std::endl;}
+    static void hehe(){std::cout&amp;lt;&amp;lt;&amp;quot;static func&amp;quot;&amp;lt;&amp;lt;std::endl;}
+    statictest&amp;amp; func(){std::cout&amp;lt;&amp;lt;&amp;quot;func run&amp;quot;&amp;lt;&amp;lt;std::endl;return *this;}
+private:
+    int n;
+};
+int main(){
+    statictest st;
+    st.func().hehe();
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./static.out
+func run
+static func
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个例子说明，虽然调用静态函数不需要对象，但是有的编译器还是会对获得对象的表达式进行运算还有，对静态成员函数取地址，得到是是一个非成员函数指针&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
     </item>
@@ -1715,24 +1830,6 @@ from cout
     - cerr 标准错误
     - clog 标准错误（貌似带缓冲，没验证）&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>about</title>
-      <link>http://shamaoxiaogui.github.io/about/</link>
-      <pubDate>Sun, 17 Jul 2016 13:46:59 +0800</pubDate>
-      
-      <guid>http://shamaoxiaogui.github.io/about/</guid>
-      <description>&lt;p&gt;Adro，男，西电研狗，私以为生活习性可与草履虫相媲美。&lt;/p&gt;
-
-&lt;p&gt;平时除了调戏女朋友（括弧笑），喜欢嵌入式、撩拨linux、扯扯并发，聊聊服务器。身为一条合格的研狗，坚决执行老板的决定，哪怕老板说：“我们要产品大卖！”嗯，产品大卖。&lt;/p&gt;
-
-&lt;p&gt;厂里，哦不，实验室里主要负责桌面式眼动仪的硬件软件平台设计，一言不合就画板子，写固件，戳USB3.0，码上位机，故而熟悉QT，并发编程，网络通信，熟读程序员腰椎疾病恢复指南。&lt;/p&gt;
-
-&lt;p&gt;遥想当年，意气风发，打过dota，写过合作式调度器，玩过stm32，参加过电赛，如今不过是过眼烟云。&lt;/p&gt;
-
-&lt;p&gt;最后，头像是本人。&lt;/p&gt;
 </description>
     </item>
     

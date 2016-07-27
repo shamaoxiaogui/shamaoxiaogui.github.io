@@ -2,20 +2,19 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>杂谈 - Adro的作死笔记</title>
+  <title>const类和default constructor - Adro的作死笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="杂谈">
+  <meta name="description" content="const类和default constructor">
   <meta name="author" content="adro">
-  <meta itemprop="name" content="杂谈 - Adro的作死笔记">
-  <meta itemprop="description" content="杂谈">
+  <meta itemprop="name" content="const类和default constructor - Adro的作死笔记">
+  <meta itemprop="description" content="const类和default constructor">
   <meta itemprop="image" content="http://shamaoxiaogui.github.io/img/author.jpg">
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@shamaoxiaogui" />
-  <meta name="twitter:title" content="杂谈 - Adro的作死笔记" />
+  <meta name="twitter:title" content="const类和default constructor - Adro的作死笔记" />
+  <meta name="twitter:description" content="const类和default constructor" />
   
-  <meta name="twitter:description" content="hehe...">
-  <link rel="alternate" href="http://shamaoxiaogui.github.io/feed.xml" title="Adro的作死笔记" type="application/rss+xml"/>
   <link rel="shortcut icon" href="http://shamaoxiaogui.github.io/img/favicon.ico"/>
   <link rel="apple-touch-icon" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
   <link rel="apple-touch-icon-precomposed" href="http://shamaoxiaogui.github.io/apple-touch-icon.png" />
@@ -59,30 +58,155 @@
 
   </header>
   <div id="container">
-    <div id="main">
-      
-      <h2 id="2016-07">2016-07</h2>
-      
-      <section class="post" itemscope itemprop="blogPost">
-    <a href="http://shamaoxiaogui.github.io/about/" title="about" itemprop="url">
-    <h1 itemprop="name">about</h1>
-    <p itemprop="description">Adro，男，西电研狗，私以为生活习性可与草履虫相媲美。 平时除了调戏女朋友（括弧笑），喜欢嵌入式、撩拨linux、扯扯并发，聊聊服务器。身为</p>
-    <time datetime="2016-07-17 13:46:59 &#43;0800 CST" itemprop="datePublished">2016年07月17日</time>
-  </a>
-</section>
+    <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody">
+    <header class="article-info clearfix">
+  <h1 itemprop="name">
+      <a href="http://shamaoxiaogui.github.io/post/const_and_default_ctor/" title="const类和default constructor" itemprop="url">const类和default constructor</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://shamaoxiaogui.github.io" title="adro">adro</a>
+    
+  </p>
+  <p class="article-time">
+    <time datetime="2016-07-27 09:33:07 &#43;0800 CST" itemprop="datePublished">2016年07月27日</time>
+  </p>
+</header>
 
-      
-      <section class="post" itemscope itemprop="blogPost">
-    <a href="http://shamaoxiaogui.github.io/post/FirstPost/" title="搬家记录" itemprop="url">
-    <h1 itemprop="name">搬家记录</h1>
-    <p itemprop="description">折腾了一上午，最后还是选择从hexo迁到hugo，记录一下～</p>
-    <time datetime="2016-07-17 13:09:40 &#43;0800 CST" itemprop="datePublished">2016年07月17日</time>
-  </a>
-</section>
+	<div class="article-content">
+    
+    <p>今天实验程序的时候，出现这样一个问题：</p>
 
-      
-      
+<pre><code class="language-cpp">struct statictest{
+    // virtual void func(){}
+    // virtual ~statictest(){}
+private:
+    int n;
+};
+int main(){
+     const statictest st;
+    return 0;
+}
+</code></pre>
+
+<pre><code class="language-shell">$ make
+g++ -std=c++11 -Wall static.cpp -o static.out
+static.cpp:14:23: error: default initialization of an object of const type
+      'const statictest' without a user-provided default constructor
+     const statictest st;
+                      ^
+static.cpp:14:25: note: add an explicit initializer to initialize 'st'
+     const statictest st;
+                        ^
+                        {}
+static.cpp:10:9: warning: private field 'n' is not used [-Wunused-private-field]
+    int n;
+        ^
+1 warning and 1 error generated.
+make: *** [static] Error 1
+</code></pre>
+
+<p>const类不能使用编译器提供的默认初始化？
+去stackoverflow查了一下，发现标准上说：</p>
+
+<blockquote>
+<p>If a program calls for the default initialization of an object of a const-qualified type T, T shall be a class type with a user-provided default constructor.</p>
+</blockquote>
+
+<p>大写的囧，让我来猜测下标准的意图。</p>
+
+<p>当我们写程序，写一个const变量时，其值是在定义时初始化后不能更改的，所以对类而言，定义一个const类又使用了默认初始化，那我们就必须告诉编译器我们希望默认初始化给这个类以初值，因为以后也不能给它赋值。所以需要一个用户定义的默认初始化函数。
+囧囧的是，有大神提出了这种玩法：</p>
+
+<pre><code class="language-cpp">struct statictest{
+    statictest();
+    // virtual void func(){}
+    // virtual ~statictest(){}
+private:
+    int n;
+};
+inline statictest::statictest()=default;
+int main(){
+     const statictest st;
+    return 0;
+}
+</code></pre>
+
+<p>是的，可以编译通过，因为标准说：</p>
+
+<blockquote>
+<p>&hellip; A special member function is user-provided if it is user-declared and not explicitly defaulted or deleted on its first declaration. &hellip;</p>
+</blockquote>
+
+<p>言归正传，似乎实际当中像开头这样，直接定义一个const对象的不多，但是如果一定要这样，有这么几个办法：</p>
+
+<ol>
+<li>定义一个默认构造函数（好吧。。。）</li>
+<li><code>const A a=A();</code>相当于<code>const int a=3;</code></li>
+<li><code>const A a{};</code>值初始化</li>
+</ol>
+
+	</div>
+  <footer class="article-footer clearfix">
+  
+
+<div class="article-tags">
+  <span></span>
+  
+  <a href="http://shamaoxiaogui.github.io/tags/development">Development</a>
+  
+  <a href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;">c&#43;&#43;</a>
+  
+</div>
+
+
+
+
+
+<div class="article-categories">
+  <span></span>
+  
+  <a class="article-category-link" href="http://shamaoxiaogui.github.io/categories/development">Development</a>
+  
+</div>
+
+
+
+  <div class="article-share" id="share">
+    <div data-url="http://shamaoxiaogui.github.io/post/const_and_default_ctor/" data-title="const类和default constructor" data-tsina="2110117813" class="share clearfix">
     </div>
+  </div>
+</footer>
+
+	</article>
+  
+
+
+<section class="comment">
+<div id="disqus_thread"></div>
+</section>
+<script>
+
+
+var disqus_config = function () {
+this.page.url = "http://shamaoxiaogui.github.io/post/const_and_default_ctor/";
+this.page.identifier = "http://shamaoxiaogui.github.io/post/const_and_default_ctor/";
+};
+(function() { 
+var d = document, s = d.createElement('script');
+
+s.src = '//adro.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
     <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
@@ -152,10 +276,6 @@
 
 
   
-<div class="rsspart">
-  <a rel="nofollow" href="http://shamaoxiaogui.github.io/feed.xml" type="application/rss+xml" target="_blank">RSS 订阅</a>
-</div>
-
 
 </aside>
 </div>
@@ -250,6 +370,38 @@ $(document).ready(function(){
 
 <script type="text/javascript">
 $(document).ready(function(){
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){
   var $this = $('.share'),
       url = $this.attr('data-url'),
       encodedUrl = encodeURIComponent(url),
@@ -276,6 +428,27 @@ $(document).ready(function(){
 });
 </script>
 
+
+<link rel="stylesheet" href="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="http://shamaoxiaogui.github.io/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+});
+</script>
 
 
 <script>
