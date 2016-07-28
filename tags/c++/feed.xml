@@ -6,8 +6,79 @@
     <description>Recent content in C&#43;&#43; on Adro的作死笔记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 27 Jul 2016 13:23:23 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 28 Jul 2016 09:59:16 +0800</lastBuildDate>
     <atom:link href="http://shamaoxiaogui.github.io/tags/c&#43;&#43;/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>深入理解cpp对象模型 第五章笔记</title>
+      <link>http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch5/</link>
+      <pubDate>Thu, 28 Jul 2016 09:59:16 +0800</pubDate>
+      
+      <guid>http://shamaoxiaogui.github.io/post/inside_cpp_object_model_ch5/</guid>
+      <description>&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;对于以下代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+struct abase{
+    virtual ~abase()=0;     //Oops, pure virtual dctor must be defined, or there would be a link error
+    virtual void func()=0;
+    virtual void func1()=0;
+protected:
+    abase(char c=0):_ch(c){}
+    char _ch;
+};
+abase::~abase(){std::cout&amp;lt;&amp;lt;&amp;quot;abase dctor&amp;quot;&amp;lt;&amp;lt;std::endl;}
+abase::func(){}
+struct derivied:public abase{
+    void func(){}
+    void func1(){}
+    void func3(){abase::func();}
+};
+int main(){
+    derivied d;
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;纯虚函数可以被定义，但是只能用于静态调用，所以说是否去定义实现一个纯虚函数对用户而言可选。但是析构函数例外。一个抽象类，如果定义了一个纯虚析构函数，就必须定义实现它，因为编译器会对其子类的析构函数进行扩展，如果定义在抽象类声明一个纯虚析构函数而不实现它，会产生链接错误。最好是将析构函数定义为虚函数而不是纯虚函数。&lt;/li&gt;
+&lt;li&gt;既然抽象基类中含有数据成员，我们就应该为其提供一个初始化机制，以允许派生类能初始化它&lt;/li&gt;
+&lt;li&gt;对于类中那些只操作该类的成员而不会影响后续派生类成员的接口，不要声明virtual&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;构造顺序：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;初始化virtual base class，从左到右（在继承列表中的顺序），由深到浅（在初始化列表中显示定义的就显式调用相应构造函数，否则调用默认构造函数）&lt;/li&gt;
+&lt;li&gt;初始化base class，类似上一步&lt;/li&gt;
+&lt;li&gt;设定虚表&lt;/li&gt;
+&lt;li&gt;按声明顺序初始化成员，类似第一步的规则&lt;/li&gt;
+&lt;li&gt;运行用户代码&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;对于用户提供的拷贝赋值运算符，注意&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;不要忘了考虑自赋值情况&lt;/li&gt;
+&lt;li&gt;不要忘了处基类的拷贝&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果不提供显式的拷贝运算符，编译器会提供一个合成的，它会调用父类的拷贝运算。有时候没必要提供拷贝运算就不要提供，因为这种情况下编译器大都会使用trivial的拷贝运算，也就是位逐次拷贝，效率高。但是有时我们为了触发编译器的NRV优化，确实会提供拷贝构造函数。拷贝运算符对virtual base class的处理相当复杂，所以如果没有必要不要为virtual base class提供数据成员。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;析构顺序：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;运行用户代码&lt;/li&gt;
+&lt;li&gt;析构成员，按声明的相反顺序&lt;/li&gt;
+&lt;li&gt;设定虚表&lt;/li&gt;
+&lt;li&gt;析构基类， 按声明的相反顺序&lt;/li&gt;
+&lt;li&gt;析构虚基类，按构造的相反顺序&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;同样，对于析构函数，如果没有必要提供定义就不要提供，一旦编译器使用trivial的析构方法，效率会非常高，相当于只进行内存的释放。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     
     <item>
       <title>convariant return type and override</title>
@@ -339,6 +410,12 @@ int main(){
 &lt;/ol&gt;
 
 &lt;p&gt;现在，你可以回过头去对照primer5th提供的定义再好好的研究下aggregate类了，它将是我们下面所要探索的POD类型的基础。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;2016-07-28添加&#34;&gt;2016-07-28添加：&lt;/h3&gt;
+
+&lt;p&gt;事实上，不只有aggregate变量可以用花括号进行初始化。早在11标准之前，就允许对部分类进行explicit initialization。但是有个限制就是花括号列表中的值必须为编译期可确定的常量。它对类的要求就是，成员都是public的。&lt;/p&gt;
 
 &lt;h2 id=&#34;pod&#34;&gt;POD&lt;/h2&gt;
 
@@ -1803,127 +1880,6 @@ const auto&amp;amp; for: 5508764 microseconds
 
 &lt;li&gt;&lt;p&gt;string的c_str()返回的char*字符串有可能不保证一直有效！！！&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>cpp primer 第二章笔记</title>
-      <link>http://shamaoxiaogui.github.io/post/cpp_primer_note_2/</link>
-      <pubDate>Tue, 19 Jul 2016 15:16:37 +0800</pubDate>
-      
-      <guid>http://shamaoxiaogui.github.io/post/cpp_primer_note_2/</guid>
-      <description>
-
-&lt;p&gt;第二章主要讲的是基本类型，需要注意的有：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;同一个表达式混用&lt;strong&gt;&lt;em&gt;有符号&lt;/em&gt;&lt;/strong&gt;和&lt;strong&gt;&lt;em&gt;无符号&lt;/em&gt;&lt;/strong&gt;数，会自动转换成&lt;strong&gt;&lt;em&gt;无符号&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;字面值前缀指定字符编码，后缀指定变量大小或种类&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;字符串字面值不可修改（因为放在一个只读段中）&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
-int main(){
-    char *str=&amp;quot;heheda!&amp;quot;;
-    std::cout&amp;lt;&amp;lt;&amp;quot;before m: &amp;quot;&amp;lt;&amp;lt;str&amp;lt;&amp;lt;std::endl;
-    str[3]=&#39;a&#39;;
-    std::cout&amp;lt;&amp;lt;&amp;quot;after m: &amp;quot;&amp;lt;&amp;lt;str&amp;lt;&amp;lt;std::endl;
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./cstr.out
-before m: heheda!
-[2]    37400 bus error  ./cstr.out
-&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;code&gt;c++11&lt;/code&gt;提供了一种新的*列表初始化*，但是效率么。。。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
-#include &amp;lt;string&amp;gt;
-#include &amp;lt;vector&amp;gt;
-class tc{
-public:
-    tc(){std::cout&amp;lt;&amp;lt;&amp;quot;ct a class! &amp;quot;&amp;lt;&amp;lt;std::endl;}
-    tc(const tc &amp;amp;t){std::cout&amp;lt;&amp;lt;&amp;quot;copy a class!&amp;quot;&amp;lt;&amp;lt;std::endl;}
-    tc&amp;amp; operator=(tc &amp;amp;t){std::cout&amp;lt;&amp;lt;&amp;quot;= a class!&amp;quot;&amp;lt;&amp;lt;std::endl; return *this;}
-};
-int main(){
-    tc t1;
-    std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-    tc t2(t1);
-    std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-    tc t3=t1;
-    std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-    tc t4{t1};
-    std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-    tc t5={t1};
-    std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-    std::vector&amp;lt;tc&amp;gt; tcv{t1,t2,t3};
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ ./initlist.out
-ct a class!
-===============
-copy a class!
-===============
-copy a class!
-===============
-copy a class!
-===============
-copy a class!
-===============
-copy a class!
-copy a class!
-copy a class!
-copy a class!
-copy a class!
-copy a class!
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;所以在用容器时不要随便用初始化列表，详细见&lt;a href=&#34;https://segmentfault.com/a/1190000002484690&#34;&gt;这里&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;const相关&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;const变量只能初始化不能赋值（哈士奇都知道）&lt;/li&gt;
-&lt;li&gt;不加extern的const变量只能在本文件访问（所以说加了呢）&lt;/li&gt;
-&lt;li&gt;const左值引用可以绑定：const变量，非const变量，常量（字面量，这也是std::string的设计，只能将字符串传给const std::string &amp;amp;，而不能传给std::string &amp;amp;），无论如何，常量左值引用意味着不能通过这个引用去修改变量&lt;/li&gt;
-&lt;li&gt;顶层const指指针本身的值是常量，底层const则是指针指向的值是常量，故而在函数传参或者复制指针时，顶层const忽略（反正就算你是常量我也只是复制你，后面无论怎么操作也不会修改你），底层const则不能忽略（因为有可能通过复制的指针修改数据）&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;constexpr常量表达式，由编译器帮忙检查；using的别名声明功能（类似typedef—）&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;单纯的auto的推断效果：忽略顶层const，然后把表达式的值算出来是啥类型auto就是啥类型。底层const保留。加const的auto推断出来才是顶层const的，auto &amp;amp;推断出来才是引用&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;decltype基本保留变量的所有属性，尤其是当变量为引用时推断出来的结果也是引用。当其表达式是解引用操作时，结果必为引用，而其跟双括号表达式（加了括号的变量），结果必为引用&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;注意类内初始值的初始化顺序：类内初始值－》构造函数初始化列表－》构造函数体&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&#34;2016-07-21添加&#34;&gt;2016-07-21添加&lt;/h2&gt;
-
-&lt;p&gt;我又回过头来看了一下，关于initializer_list，之前的示例代码中使用的是左值，所以拷贝了两次，但是当我给类添加移动构造函数并使用std::move将其转换为右值后：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::cout&amp;lt;&amp;lt;&amp;quot;===============&amp;quot;&amp;lt;&amp;lt;std::endl;
-std::vector&amp;lt;tc&amp;gt; tcv3{std::move(t1),std::move(t2),std::move(t3)};
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;===============
-move a class!
-move a class!
-move a class!
-copy a class!
-copy a class!
-copy a class!
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;出现了这种结果。
-似乎不太对，按道理来说initializer_list的设计应该是为了方便用临时量来构造一个集合（按我自己的理解），既然是临时量标准库应该提供转移语义，现在看来并没有。其它的情况我找到了stackoverflow上的一个&lt;a href=&#34;http://stackoverflow.com/questions/8193102/initializer-list-and-move-semantics&#34;&gt;讨论&lt;/a&gt;，显然想要手动从里面转移出临时量也不可以，怪怪的感觉&lt;/p&gt;
 </description>
     </item>
     
